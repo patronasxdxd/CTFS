@@ -1,4 +1,4 @@
 ## Contents
 
 * **Agave**
-  * [**1_Agave**](docs/1_agave.md): something.
+  * [**1_Agave**](docs/1_Agave.md): something.
