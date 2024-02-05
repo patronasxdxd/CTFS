@@ -326,3 +326,4 @@ The reentrancy attack in this context occurs within the `attackLogic` function, 
 
 In summary, the reentrancy attack takes advantage of the reentrancy point created during the liquidation call. By triggering external calls within the Aave protocol, control is momentarily transferred back to your contract, allowing you to execute further actions, such as additional borrowing. This sequence of events exploits the vulnerability in the Aave protocol, leading to the reentrancy attack.
 
+[**< Back**](https://patronasxdxd.github.io/CTFS/)
