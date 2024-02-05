@@ -254,16 +254,15 @@ After detecting the second occurrence of this event, it calls borrowMaxtokens to
 
 ```solidity
         function onTokenTransfer(address _from, uint256 _value, bytes memory _data) external {
-        console.log("tokencall From: %s, Value: %d", _from, _value);
-        //we only do the borrow call on liquidation call which is the second time the from is weth and value is 1
-        if (_from == aweth && _value == 1) {
-            calcount++;
+          console.log("tokencall From: %s, Value: %d", _from, _value);
+          //we only do the borrow call on liquidation call which is the second time the from is weth and value is 1
+          if (_from == aweth && _value == 1) {
+              calcount++;
+          }
+          if (calcount == 2 && _from == aweth && _value == 1) {
+              borrowMaxtokens();
+          }
         }
-        if (calcount == 2 && _from == aweth && _value == 1) {
-            borrowMaxtokens();
-        }
-    }
-}
 
 ```
 
