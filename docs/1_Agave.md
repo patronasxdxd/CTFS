@@ -103,7 +103,7 @@ Finally, we establish the initial state of the contract by minting the original 
 
 ### Liquidation Mechanism 
 
-A liquidation mechanism is in place to protect the system from insolvency. When an account's health factor falls below 1, it may become eligible for liquidation.
+A liquidation mechanism is in place to protect the system from insolvency. When an account's health factor falls below 1, it becomes eligible for liquidation.
 
 ### Purpose liquidation-call:
 
