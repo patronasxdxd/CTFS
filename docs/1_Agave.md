@@ -114,6 +114,7 @@ To get the health factor below 1, you would typically need to ensure that the bo
 - Deposit a minimal amount of WETH (1) into the lending pool, designating it as collateral.
 
 - Set both LINK and WETH as collateral assets in the lending pool, allowing them to be used as security for borrowing.
+this can be done by using the function `setUserUseReserveAsCollateral`.
 
 - Borrow a large amount of LINK (700_000_000_000_000_000) from the lending pool with a borrow factor of 2. The borrow factor influences the amount that can be borrowed relative to the collateral.
 
