@@ -93,13 +93,13 @@ Finally, we establish the initial state of the contract by minting the original 
 
 **Objective:** Ensure that the health factor is initially slightly above 1.
 
-**Reasoning:** The health factor is important in DeFi platforms, especially those involving lending and borrowing. It is a measure of an account's collateralization level, indicating the ratio of the value of assets to the value of outstanding liabilities. A health factor above 1 indicates that the account has sufficient collateral to cover its liabilities.
+**Why?** The health factor is important in DeFi platforms, especially those involving lending and borrowing. It is a measure of an account's collateralization level, indicating the ratio of the value of assets to the value of outstanding liabilities. A health factor above 1 indicates that the account has sufficient collateral to cover its liabilities.
 
 ### Transition - Advance Time by One Hour
 
 **Objective:** Advance time by one hour after the initial prepare.
 
-**Reasoning** This time advancement is part of a simulation scenario to trigger changes in the account's health factor or to simulate the passage of time, allowing for dynamic testing.
+**Why** This time advancement is part of a simulation scenario to trigger changes in the account's health factor or to simulate the passage of time, allowing for dynamic testing.
 
 ### Liquidation Mechanism 
 
