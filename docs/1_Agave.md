@@ -35,7 +35,7 @@ Reentrancy
 
 ## Setup
 
-We begin by forking the contract state before initiating any hack, to create a replicated environment that mirrors the state of the smart contract at the time before the exploit happened
+In the initial phase, we replicate the contract state by forking it. This involves copying the contract precisely as it existed before the exploit, to create a replicated environment that mirrors the historical state of the smart contract at the time before the exploit happened
 
 The code initializes variables related to the lending pool addresses provider, lending pool, and price oracle using the Gnosis forked state.
 
