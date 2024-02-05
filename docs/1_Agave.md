@@ -99,7 +99,7 @@ Finally, we establish the initial state of the contract by minting the original 
 
 **Objective:** Advance time by one hour after the initial prepare.
 
-**Why** This time advancement is part of a simulation scenario to trigger changes in the account's health factor or to simulate the passage of time, allowing for dynamic testing.
+**Why?** This time advancement is part of a simulation scenario to trigger changes in the account's health factor or to simulate the passage of time, allowing for dynamic testing.
 
 ### Liquidation Mechanism 
 
