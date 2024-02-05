@@ -11,7 +11,7 @@
     - [Initial Condition - Health Factor Above 1](#initial-condition---health-factor-above-1)
     - [Transition - Advance Time by One Hour](#transition---advance-time-by-one-hour)
     - [Liquidation Mechanism](#liquidation-mechanism)
-    - [Purpose - Liquidation Call](#purpose---liquidation-call)
+    - [Purpose - Liquidation Call](#purpose-liquidation-call)
   - [Flashloan and Deposit Phase](#flashloan-and-deposit-phase)
 - [Flashloan Attack Logic](#flashloan-attack-logic)
 - [Exploit Completion](#exploit-completion)
@@ -27,7 +27,7 @@ Users deposit tokens, receiving 'aTokens' that accrue interest and can be used a
 
 1.5 million USD
 
-## Vurnebality
+## Vulnerability
 
 Reentrancy
 
@@ -89,29 +89,23 @@ Finally, we establish the initial state of the contract by minting the original 
 ## Prepare Phase
 
 
-#### Initial Condition - Health Factor Above 1
+### Initial Condition - Health Factor Above 1
 
-**Objective:** 
+**Objective:** Ensure that the health factor is initially slightly above 1.
 
-Ensure that the health factor is initially slightly above 1.
+**Reasoning:** The health factor is important in DeFi platforms, especially those involving lending and borrowing. It is a measure of an account's collateralization level, indicating the ratio of the value of assets to the value of outstanding liabilities. A health factor above 1 indicates that the account has sufficient collateral to cover its liabilities.
 
-**Reasoning:**
+### Transition - Advance Time by One Hour
 
-The health factor is important in DeFi platforms, especially those involving lending and borrowing. It is a measure of an account's collateralization level, indicating the ratio of the value of assets to the value of outstanding liabilities. A health factor above 1 indicates that the account has sufficient collateral to cover its liabilities.
+**Objective:** Advance time by one hour after the initial prepare.
 
-#### Transition - Advance Time by One Hour
+**Reasoning** This time advancement is part of a simulation scenario to trigger changes in the account's health factor or to simulate the passage of time, allowing for dynamic testing.
 
-**Objective:**
-Advance time by one hour after the initial prepare.
+### Liquidation Mechanism 
 
-**Reasoning**
-This time advancement is part of a simulation scenario to trigger changes in the account's health factor or to simulate the passage of time, allowing for dynamic testing.
+A liquidation mechanism is in place to protect the system from insolvency. When an account's health factor falls below 1, it may become eligible for liquidation.
 
-#### Liquidation Mechanism
-A liquidation mechanism in place to protect the system from insolvency. When an account's health factor falls below 1, it may become eligible for liquidation.
-
-
-#### Purpose -  Liquidation Call:
+### Purpose liquidation-call:
 
 To get the health factor below 1, you would typically need to ensure that the borrowed amount exceeds the collateral value. The health factor is calculated based on the ratio of collateral to debt. If this ratio falls below 1, the health factor drops below the threshold, indicating potential insolvency.
 
