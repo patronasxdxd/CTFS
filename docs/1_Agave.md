@@ -163,11 +163,13 @@ These actions collectively set up a scenario where you have a significant LINK d
 
 
 ## Flashloan and Deposit Phase
-   - Action: Execute a flashloan and deposit tokens.
-   - Exploited Assets: In this exploit, withdraw and borrow all funds from WETH and maximize borrowing from all available pools.
+
+**Action:** Execute a flashloan and deposit tokens.
+
+**Exploited Assets:** In this exploit, the approach involves withdrawing and borrowing the maximum available funds from WETH, as well as borrowing the maximum amount from all available pools.
 
 
-This function initiates a flashloan by calling **`uniswapV2Call`** with a specified amount of WETH (2730 ether). The actual flashloan logic is implemented in the **`attackLogic`** function.
+Initiate a flashloan by calling **`uniswapV2Call`** with a specified amount of WETH (2730 ether). The actual flashloan logic is implemented in the **`attackLogic`** function.
 
 ```solidity
   function flashloanFundingWETH() internal {
