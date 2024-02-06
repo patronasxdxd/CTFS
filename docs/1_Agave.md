@@ -35,11 +35,11 @@ Reentrancy
 
 ## Setup
 
-In the initial phase, we replicate the contract state by forking it. This involves copying the contract precisely as it existed before the exploit, to create a replicated environment that mirrors the historical state of the smart contract at the time before the exploit happened
+In the initial phase, we replicate the contract state by forking it. This involves copying the contract exactly as it existed before the exploit, to create a replicated environment that mirrors the historical state of the smart contract at the time before the exploit happened
 
 The code initializes variables related to the lending pool addresses provider, lending pool, and price oracle using the Gnosis forked state.
 
-**`vm.startPrank`** is used to set an address as the **`msg.sender`**, by setting it to the gnosis bridge address we can simulate real transactions.
+**`vm.startPrank`** is used to set an address as the **`msg.sender`**, by setting it to the gnosis bridge address we can simulate transactions.
 Finally, we establish the initial state of the contract by minting the original amounts of WETH and LINK tokens.
 
 
@@ -186,7 +186,7 @@ This function simulates a flashloan from Uniswap, passing control to the **`atta
 
 ## Flashloan Attack Logic
 
-The `attackLogic` function orchestrates a flashloan-based attack on the Aave lending pool, exploiting vulnerabilities in the protocol. Here's a breakdown of its key steps:
+The `attackLogic` function orchestrates a flashloan-based attack on the Aave lending pool. Here's a breakdown of how it's accomplished:
 
 1. **Calculate Flashloan Amount:**
    - Calculate the flashloan amount based on the received parameters (`_amount0` and `_amount1`).
@@ -266,15 +266,11 @@ After detecting the second occurrence of this event, it calls borrowMaxtokens to
               borrowMaxtokens();
           }
         }
-
 ```
 
 
 ## Exploit Completion:
 Successful execution drains funds from the lending pool.
-
-
-
 
 ```solidity
   Before hack balances
