@@ -324,6 +324,6 @@ The reentrancy attack in this context occurs within the `attackLogic` function, 
 - The `borrowMaxtokens` function is then executed, allowing for the maximization of borrowing.
 - This function interacts with the Aave lending pool to borrow additional funds based on the current state and conditions.
 
-In summary, the reentrancy attack takes advantage of the reentrancy point created during the liquidation call. By triggering external calls within the Aave protocol, control is momentarily transferred back to your contract, allowing you to execute further actions, such as additional borrowing. This sequence of events exploits the vulnerability in the Aave protocol, leading to the reentrancy attack.
+In summary, the reentrancy attack takes advantage of the reentrancy point created during the liquidation call. By triggering external calls within the Aave protocol, control is transferred back to your contract, allowing you to execute further actions, such as additional borrowing. This sequence of events exploits the vulnerability in the Aave protocol, leading to the reentrancy attack.
 
 [**< Back**](https://patronasxdxd.github.io/CTFS/)
