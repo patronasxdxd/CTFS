@@ -95,14 +95,14 @@ LidoLevV3.sol
 - `_addToPosition` is called, which involves borrowing WETH, converting it to wstETH, depositing in AAVE, and borrowing again.
 
 ### Second Flash Loan:
-- `flashloan` is called wiht `amount2[0] = 0`.
+- `flashloan` is called with `amount2[0] = 0`.
 - The Balancer pool initiates a flash loan of 0 WETH to the `LidoLevV3` contract,
 - using the specified `userencodeData2`. 
 
 ### LidoLev3 (`receiveFlashLoan` function):
 - The `LidoLevV3` contract receives the second flash loan.
 - The `LoanType.divest` case is triggered in the `receiveFlashLoan` function.
-- `_endPosition` is called, which involves repaying debt in AAVE, unlocking collateral and converting it back to ETH.
+- `_endPosition` is called, which involves repaying debt in AAVE, unlocking collateral, and converting it back to ETH.
 
 ```solidity
 
