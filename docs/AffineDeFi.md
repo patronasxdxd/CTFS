@@ -65,6 +65,21 @@ function receiveFlashLoan(
     // Payback wETH loan
     WETH.safeTransfer(address(BALANCER), ethBorrowed);
 }
+
+   function _addToPosition(uint256 ethBorrowed) internal {
+        // withdraw eth from weth
+        WETH.withdraw(ethBorrowed);
+
+        (bool success,) = payable(address(WSTETH)).call{value: ethBorrowed}("");
+
+        require(success, "LLV3: WstEth failed");
+        // Deposit wstETH in AAVE
+        AAVE.deposit(address(WSTETH), WSTETH.balanceOf(address(this)), address(this), 0);
+
+        // Borrow 90% of wstETH value in ETH using e-mode
+        uint256 ethToBorrow = ethBorrowed - WETH.balanceOf(address(this));
+        AAVE.borrow(address(WETH), ethToBorrow, 2, 0, address(this));
+    }
 ```
 
 # proof of concept (PoC) 
