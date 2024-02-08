@@ -106,8 +106,8 @@ LidoLevV3.sol
 
 ### LidoLevV3 (`receiveFlashLoan` function):
 - The `LidoLevV3` contract receives the flash loan.
-- The `LoanType.invest` case is triggered in the `receiveFlashLoan` function.
-- `_addToPosition` is called, which involves borrowing WETH, converting it to wstETH, depositing in AAVE, and borrowing again.
+- The `LoanType.divest` case is triggered in the `receiveFlashLoan` function.
+- `_endPosition` is called, which involves repaying debt in AAVE, unlocking collateral, and converting it back to ETH.
 
 ### Second Flash Loan:
 - `flashloan` is called with `amount2[0] = 0`.
@@ -116,8 +116,8 @@ LidoLevV3.sol
 
 ### LidoLev3 (`receiveFlashLoan` function):
 - The `LidoLevV3` contract receives the second flash loan.
-- The `LoanType.divest` case is triggered in the `receiveFlashLoan` function.
-- `_endPosition` is called, which involves repaying debt in AAVE, unlocking collateral, and converting it back to ETH.
+- The `LoanType.upgrade` case is triggered in the `receiveFlashLoan` function.
+- 
 
 ```solidity
 
