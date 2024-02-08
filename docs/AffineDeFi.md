@@ -165,11 +165,9 @@ Logs:
 When the `LoanType` is `LoanType.divest`, the `_endPosition` function is called, which handles the divestment logic and ultimately repays the first flash loan. This ensures that the funds borrowed in the first flash loan are used as part of the divestment process, resulting in the repayment of the initial flash loan.
 
 ```solidity
-if (loan == LoanType.divest) {
-        _endPosition(ethBorrowed);  // This function handles divestment and repays the first flash loan
+else if (loan == LoanType.upgrade) {
+            _payDebtAndTransferCollateral(LidoLevV3(payable(newStrategy)));
 ```
-
-
 
 ### How did they resolve this problem?
 
@@ -205,6 +203,35 @@ The addition of `require(_reentrancyGuardEntered(), "LLV3: Invalid FL origin");`
         require(_reentrancyGuardEntered(), "LLV3: Invalid FL origin");
 ```
 
+
+
+```solidity
+ function receiveFlashLoan(
+        ERC20[] memory, /* tokens */
+        uint256[] memory amounts,
+        uint256[] memory, /* feeAmounts */
+        bytes memory userData
+    ) external override {
+        if (msg.sender != address(BALANCER)) revert onlyBalancerVault();
+        require(_reentrancyGuardEntered(), "LLV3: Invalid FL origin");
+```
+
+
+```solidity
+ /// @dev Pay debt and transfer collateral to new strategy.
+    function _payDebtAndTransferCollateral(LidoLevV3 newStrategy) internal {
+        _checkIfStrategy(newStrategy); #added this line
+        // Pay debt in aave.
+        uint256 debt = debtToken.balanceOf(address(this));
+        AAVE.repay(address(WETH), debt, 2, address(this));
+
+        // Transfer collateral (aTokens) to new Strategy.
+        aToken.safeTransfer(address(newStrategy), aToken.balanceOf(address(this)));
+
+        // Make the new strategy borrow the same amount as this strategy originally had in debt.
+        newStrategy.createAaveDebt(debt);
+    }
+```
 
 
 ## Conclusion
