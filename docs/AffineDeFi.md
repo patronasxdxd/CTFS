@@ -12,7 +12,7 @@ Affine is the world's first cross-chain investment and savings app. We make it s
 Feb 1, 2024
 
 ## Vulnerability
-Flash loan attack
+Reentrancy
 
 ## Analysis
 
@@ -168,6 +168,43 @@ When the `LoanType` is `LoanType.divest`, the `_endPosition` function is called,
 if (loan == LoanType.divest) {
         _endPosition(ethBorrowed);  // This function handles divestment and repays the first flash loan
 ```
+
+
+
+### How did they resolve this problem?
+
+`nonReentrant` was added to prevent Reentrancy on the flash loan, to ensure the first flash loan gets repaid within the same
+transaction
+
+
+```solidity
+ function _flashLoan(uint256 amount, LoanType loan, address recipient) internal nonReentrant {
+        ERC20[] memory tokens = new ERC20[](1);
+        tokens[0] = WETH;
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = amount;
+        BALANCER.flashLoan({
+            recipient: IFlashLoanRecipient(address(this)),
+            tokens: tokens,
+            amounts: amounts,
+            userData: abi.encode(loan, recipient)
+        });
+    }
+```
+
+The addition of `require(_reentrancyGuardEntered(), "LLV3: Invalid FL origin");` serves as an additional layer of security to reinforce the protection against reentrancy issues during flash loans
+
+```solidity
+ function receiveFlashLoan(
+        ERC20[] memory, /* tokens */
+        uint256[] memory amounts,
+        uint256[] memory, /* feeAmounts */
+        bytes memory userData
+    ) external override {
+        if (msg.sender != address(BALANCER)) revert onlyBalancerVault();
+        require(_reentrancyGuardEntered(), "LLV3: Invalid FL origin");
+```
+
 
 
 ## Conclusion
