@@ -18,23 +18,8 @@ Reentrancy
 
 The exploiter successfully repaid the initial flash loan using a subsequent flash loan.
 
-### Vulnerable code
+### Vurniable code
 
-```solidity
-    /// @notice Callback called by balancer vault after flashloan is initiated.
-    function _flashLoan(uint256 amount, LoanType loan, address recipient) internal {
-        ERC20[] memory tokens = new ERC20[](1);
-        tokens[0] = WETH;
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount;
-        BALANCER.flashLoan({
-            recipient: IFlashLoanRecipient(address(this)),
-            tokens: tokens,
-            amounts: amounts,
-            userData: abi.encode(loan, recipient)
-        });
-    }
-```
 
 ```solidity
 
@@ -82,42 +67,91 @@ function receiveFlashLoan(
     }
 ```
 
+
+
 # proof of concept (PoC) 
 
+The vulnerability exploited by the attacker in AffineDeFi was rooted in the protocol's handling of flash loans and the associated `LoanType` enum, which allowed different actions to be taken upon receiving a flash loan. Let's break down how the attacker exploited this vulnerability step by step:
 
-### first flash loan:
--  `flashloan` is called with `amount[0] = 318973831042619036856`
-- The Balancer pool initiates a flash loan of WETH to the `LidoLevV3` contract, using the specified `userencodeData` 
+## Flash Loan Initialization:
 
+1. The attacker initiated a flash loan through the AffineDeFi protocol, leveraging the `flashLoan` function provided by the Balancer pool.
+2. The flash loan requested a substantial amount of WETH (wrapped Ethereum) from the Balancer pool.
 
-`userencodeData` is to determine the action
+## LoanType.divest Action:
 
-LidoLevV3.sol
+1. During the first flash loan, the attacker specified the `LoanType.divest` action in the `userencodeData` parameter. This action is designed to trigger the `_endPosition` function, responsible for divesting from the current strategy.
+2. `_divest` Function Execution:
+   - As a result of the `LoanType.divest` action, the `_endPosition` function was called.
+   - The `_endPosition` function involved several steps, including:
+     - Determining the proportion of collateral to unlock based on the debt amount (`ethBorrowed`).
+     - Repaying the debt in Aave using the borrowed WETH.
+     - Withdrawing the corresponding proportion of collateral from Aave.
+     - Unwrapping WSTETH (wrapped stETH) into ETH.
+     - Converting stETH to WETH using the `_convertStEthToWeth` function.
+    
+       ### TL;DR
+       The attacker used flash loans to create ethBorrowed debt via LoanType.divest
+    
 ```solidity
-   /// @notice The different reasons for a flashloan.
-    enum LoanType {
-        invest,
-        divest,
-        upgrade,
-        incLev,
-        decLev
+ function _endPosition(uint256 ethBorrowed) internal {
+        // Proportion of collateral to unlock is same as proportion of debt to pay back (ethBorrowed / debt)
+        // We need to calculate this number before paying back debt, since the fraction will change.
+        uint256 wstEthToRedeem = aToken.balanceOf(address(this)).mulDivDown(ethBorrowed, _debt());
+
+        // Pay debt in aave
+        AAVE.repay(address(WETH), ethBorrowed, 2, address(this));
+
+        // Withdraw same proportion of collateral from aave
+        AAVE.withdraw(address(WSTETH), wstEthToRedeem, address(this));
+
+        // withdraw eth from wsteth
+        WSTETH.unwrap(WSTETH.balanceOf(address(this)));
+
+        // convert stEth to eth
+        _convertStEthToWeth(STETH.balanceOf(address(this)), STETH.balanceOf(address(this)).slippageDown(slippageBps));
     }
 ```
 
-### LidoLevV3 (`receiveFlashLoan` function):
-- The `LidoLevV3` contract receives the flash loan.
-- The `LoanType.divest` case is triggered in the `receiveFlashLoan` function.
-- `_endPosition` is called, which involves repaying debt in AAVE, unlocking collateral, and converting it back to ETH.
+## Flash Loan Repayment:
 
-### Second Flash Loan:
-- `flashloan` is called with `amount2[0] = 0`.
-- The Balancer pool initiates a flash loan of 0 WETH to the `LidoLevV3` contract,
-- using the specified `userencodeData2`. 
+1. The funds borrowed in the flash loan were successfully utilized as part of the divestment process.
+2. The WETH equivalent of the borrowed funds was used to repay the initial flash loan from the Balancer pool.
 
-### LidoLev3 (`receiveFlashLoan` function):
-- The `LidoLevV3` contract receives the second flash loan.
-- The `LoanType.upgrade` case is triggered in the `receiveFlashLoan` function.
-- 
+## Second Flash Loan Initialization:
+
+1. Following the successful divestment, the attacker triggered a second flash loan, this time with a `LoanType.upgrade` action specified in the `userencodeData2` parameter.
+
+## LoanType.upgrade Action:
+
+1. The `LoanType.upgrade` action triggered the `_payDebtAndTransferCollateral` function. This function was responsible for:
+   - Repaying the debt in Aave using the remaining debt from the initial flash loan.
+   - Transferring collateral (aTokens) to a new strategy (LidoLevV3).
+   - Making the new strategy borrow the same amount as the original strategy had in debt.
+  
+     ### TL;DR
+     The attacker used a second flash loan with LoanType.upgrade to repay debt, transfer collateral to a new strategy (LidoLevV3),
+      and make the new strategy borrow the original debt amount.
+
+  
+```solidity
+/// @dev Pay debt and transfer collateral to new strategy.
+    function _payDebtAndTransferCollateral(LidoLevV3 newStrategy) internal {
+        _checkIfStrategy(newStrategy);
+        // Pay debt in aave.
+        uint256 debt = debtToken.balanceOf(address(this));
+        AAVE.repay(address(WETH), debt, 2, address(this));
+
+        // Transfer collateral (aTokens) to new Strategy.
+        aToken.safeTransfer(address(newStrategy), aToken.balanceOf(address(this)));
+
+        // Make the new strategy borrow exactly the same amount as this strategy originally had in debt.
+        newStrategy.createAaveDebt(debt);
+    }
+```
+
+
+### Attack.sol
 
 ```solidity
 
@@ -156,13 +190,10 @@ Logs:
   Exploiter aEthwstETH balance after attack: 33.698806193381635860
 ```
 
-### Funds Movement Analysis:
-- The first flash loan involves borrowing WETH, leveraging it in the `LidoLevV3` contract, and repaying the flash loan.
-- The second flash loan involves repaying the flash loan without borrowing additional funds.
-
 
 ### Exploited Code
-When the `LoanType` is `LoanType.divest`, the `_endPosition` function is called, which handles the divestment logic and ultimately repays the first flash loan. This ensures that the funds borrowed in the first flash loan are used as part of the divestment process, resulting in the repayment of the initial flash loan.
+
+The vulnerable code is part of the `LidoLevV3` contract, specifically the `receiveFlashLoan` function, which handles different actions based on the `LoanType.` The exploit involves triggering a `LoanType.divest` during the first flash loan, followed by a `LoanType.upgrade` in the second flash loan.
 
 ```solidity
 else if (loan == LoanType.upgrade) {
@@ -171,7 +202,7 @@ else if (loan == LoanType.upgrade) {
 
 ### How did they resolve this problem?
 
-`nonReentrant` was added to prevent Reentrancy on the flash loan, to ensure the first flash loan gets repaid within the same
+`nonReentrant` was added to prevent Reentrancy on the flash loan, and to ensure the first flash loan gets repaid within the same
 transaction
 
 
@@ -202,25 +233,12 @@ The addition of `require(_reentrancyGuardEntered(), "LLV3: Invalid FL origin");`
         if (msg.sender != address(BALANCER)) revert onlyBalancerVault();
         require(_reentrancyGuardEntered(), "LLV3: Invalid FL origin");
 ```
-
-
-
-```solidity
- function receiveFlashLoan(
-        ERC20[] memory, /* tokens */
-        uint256[] memory amounts,
-        uint256[] memory, /* feeAmounts */
-        bytes memory userData
-    ) external override {
-        if (msg.sender != address(BALANCER)) revert onlyBalancerVault();
-        require(_reentrancyGuardEntered(), "LLV3: Invalid FL origin");
-```
-
+`_checkIfStrategy(newStrategy);` was added to ensure the integrity of the strategy. This step verifies that the new strategy is valid before proceeding with the debt repayment and collateral transfer.
 
 ```solidity
  /// @dev Pay debt and transfer collateral to new strategy.
     function _payDebtAndTransferCollateral(LidoLevV3 newStrategy) internal {
-        _checkIfStrategy(newStrategy); #added this line
+        _checkIfStrategy(newStrategy); 
         // Pay debt in aave.
         uint256 debt = debtToken.balanceOf(address(this));
         AAVE.repay(address(WETH), debt, 2, address(this));
@@ -235,10 +253,10 @@ The addition of `require(_reentrancyGuardEntered(), "LLV3: Invalid FL origin");`
 
 
 ## Conclusion
-While the first flash loan involved leveraging and borrowing funds,
-the second flash loan aimed at repaying the flash loan without additional borrowing.
-The funds moved within the LidoLevV3 contract during the flash loan transactions. 
-The contract logs the balance of aEthwstETH before and after the flash loan attacks.
+
+By using a combination of divestment and upgrade actions through two consecutive flash loans, the attacker manipulated the protocol's logic. The attacker moved funds, repaid the initial flash loan, and diverted assets to a new strategy, stealing funds from the protocol in the process.
+
+
 
 **Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/AffineDeFi_exp.sol)
 
