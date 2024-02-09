@@ -71,7 +71,7 @@ function receiveFlashLoan(
 
 # proof of concept (PoC) 
 
-The vulnerability exploited by the attacker in AffineDeFi was rooted in the protocol's handling of flash loans and the associated `LoanType` enum, which allowed different actions to be taken upon receiving a flash loan. Let's break down how the attacker exploited this vulnerability step by step:
+The vulnerability exploited by the attacker in AffineDeFi was caused by the protocol's handling of flash loans and the associated `LoanType` enum, which allowed different actions to be taken upon receiving a flash loan. Let's break down how the attacker exploited this vulnerability step by step:
 
 ## Flash Loan Initialization:
 
@@ -91,7 +91,7 @@ The vulnerability exploited by the attacker in AffineDeFi was rooted in the prot
      - Converting stETH to WETH using the `_convertStEthToWeth` function.
     
        ### TL;DR
-       The attacker used flash loans to create ethBorrowed debt via LoanType.divest
+       The attacker used flash loans to create more debt (debttoken) via LoanType.divest
     
 ```solidity
  function _endPosition(uint256 ethBorrowed) internal {
