@@ -6,6 +6,7 @@ Allbridge is a leading cross-chain provider, specializing in integrating EVM wit
 Their mission is to make the blockchain world borderless by providing an 
 infrastructure to freely move assets between various networks
 
+![Swag Image](../images/swag2.drawio.png)
 
 ## Amount stolen
 $550k USD
