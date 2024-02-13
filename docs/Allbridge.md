@@ -33,6 +33,19 @@ When liquidity is deposited, it matches the deposited amount by minting the same
 To illustrate, consider bridging BUSD from the BNB Chain to USDT on Tron. The process involves swapping BUSD for vUSD, transferring the vUSD value to Tron through a cross-chain messaging protocol, and ultimately swapping vUSD for USDT on Tron. Notably, this directional swap results in a decrease in the internal price of BUSD to vUSD, while the price of USDT to vUSD increases. This dynamic encourages other participants to bridge assets in the opposite direction, seeking profitable opportunities within the Allbridge Core ecosystem.
 
 
+
+The fundamental issue lies in the manipulation of the pool's swap price, allowing the attacker to exploit the system by acting as both the liquidity provider and swapper. This manipulation led to a significant drain of funds from the pool.
+
+In essence, each Allbridge Core liquidity pool functions as a swap contract, similar to established decentralized exchanges such as Uniswap or Curve Finance. The distinctive feature of Allbridge's pools is that liquidity is contributed using only one token, in contrast to traditional DEXes that require pairs of tokens.
+
+Upon depositing liquidity, the system matches the deposited amount by `minting` an equivalent quantity of vUSD tokens*. This vUSD token serves as an intermediary, facilitating the transfer of value between pools, whether within the same blockchain or across different blockchains.
+
+*vUSD, technically not a token, serves as an abstraction within the Allbridge Core ecosystem. It doesn't directly impact user balances as an actual token.
+
+To illustrate, let's consider the process of bridging BUSD from the BNB Chain to USDT on Tron. This involves the sequential steps of swapping BUSD for vUSD, transferring the vUSD value to Tron using a cross-chain messaging protocol, and finally swapping vUSD for USDT on Tron. Notably, this directional swap results in a decrease in the internal price of BUSD to vUSD, while the price of USDT to vUSD increases. This dynamic creates an incentive for other participants to engage in asset bridging in the opposite direction, seeking profitable opportunities within the Allbridge Core ecosystem.
+
+
+
 # Proof of Concept (PoC) 
 
 ![Swag Image](../images/allbridge.png)
@@ -143,10 +156,16 @@ To prevent the possibility of flash loan attacks, they deployed a single liquidi
 Protocols need to add security layers,
 using at least two oracles to verify the price. An oracle serves as a means to obtain Real-World Data, enabling smart contracts to interact with external information. This approach would have detected anomalies, such as the mismatch where $40,000 BUSD should not have been able to purchase 700,000 USDT tokens, preventing potential vulnerabilities or exploits.
 
+## Changes to liquidity calculations
+The first thing they fixed, was the liquidity calculation on deposits and withdrawals. We implemented several fundamental changes:
+
+- Now virtual vUSD tokens are fully backed by the deposited stablecoins. For example, if you deposit $100k USDC to the pool, they divide it proportionally between the token balance and vUSD balance ($50k each if the pool is balanced).
+
+- On withdrawal, they also take the proportional amount of actual stablecoins and virtual tokens from the amounts in the pool. And since vUSDs are fully backed by the deposited stablecoins it's converted to 1:1.
 
 ## Conclusion 
 
-In summary, the attacker is executing a series of actions that involve swapping, depositing, and withdrawing across various pools. These actions create imbalances within the pools, leading to this vulnerability.
+In summary, the attacker is executing a series of actions that involve swapping, depositing, and withdrawing across various pools. These actions create imbalances within the pools, leading to this vulnerability. 
 
 **Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/Allbridge_exp2.sol)
 
