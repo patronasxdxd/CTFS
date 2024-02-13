@@ -19,20 +19,6 @@ Flashloan attack
 
 
 ## Analysis
-The root cause appears to be the manipulation of the pool's swap price.
-The attacker was able to act as the liquidity provider and swapper resulting in the user manipulating the price and draining funds from the pool
-
-Each Allbridge Core liquidity pool is essentially a swap contract, 
-similar to the existing decentralized exchanges like Uniswap or Curve Finance.
-The difference between Allbrige's pools is the fact that liquidity is provided in just one token (unlike the regular DEXes, which require two tokens).
-
-When liquidity is deposited, it matches the deposited amount by minting the same amount of vUSD tokens*. This token is used as an intermediary to transfer value from one pool to another (either within the same blockchain or between two different blockchains).
-
-*vUSD token is an abstraction used within the Allbridge Core ecosystem. Technically it is not a token, as it never gets out to user balances as an actual token. However, it is easier to explain the concept of how Allbridge Core works using this “token” analogy.
-
-To illustrate, consider bridging BUSD from the BNB Chain to USDT on Tron. The process involves swapping BUSD for vUSD, transferring the vUSD value to Tron through a cross-chain messaging protocol, and ultimately swapping vUSD for USDT on Tron. Notably, this directional swap results in a decrease in the internal price of BUSD to vUSD, while the price of USDT to vUSD increases. This dynamic encourages other participants to bridge assets in the opposite direction, seeking profitable opportunities within the Allbridge Core ecosystem.
-
-
 
 The fundamental issue lies in the manipulation of the pool's swap price, allowing the attacker to exploit the system by acting as both the liquidity provider and swapper. This manipulation led to a significant drain of funds from the pool.
 
