@@ -10,7 +10,7 @@ infrastructure to freely move assets between various networks
 
 
 ## Amount stolen
-$550k USD
+**$550k USD**
 
 2-04-2023
 
@@ -20,11 +20,11 @@ Flashloan attack
 
 ## Analysis
 The root cause appears to be the manipulation of the pool's swap price.
-The attacker was able to act as the liquidity prover and swapper resulting the user to manipulate the price and drain funds from the pool
+The attacker was able to act as the liquidity provider and swapper resulting in the user manipulating the price and draining funds from the pool
 
 Each Allbridge Core liquidity pool is essentially a swap contract, 
 similar to the existing decentralized exchanges like Uniswap or Curve Finance.
-What is different about Allbrige's pools, though, is the fact that liquidity is provided in just one token (unlike the regular DEXes, which require two tokens).
+The difference between Allbrige's pools is the fact that liquidity is provided in just one token (unlike the regular DEXes, which require two tokens).
 
 When liquidity is deposited, it matches the deposited amount by minting the same amount of vUSD tokens*. This token is used as an intermediary to transfer value from one pool to another (either within the same blockchain or between two different blockchains).
 
@@ -33,25 +33,11 @@ When liquidity is deposited, it matches the deposited amount by minting the same
 To illustrate, consider bridging BUSD from the BNB Chain to USDT on Tron. The process involves swapping BUSD for vUSD, transferring the vUSD value to Tron through a cross-chain messaging protocol, and ultimately swapping vUSD for USDT on Tron. Notably, this directional swap results in a decrease in the internal price of BUSD to vUSD, while the price of USDT to vUSD increases. This dynamic encourages other participants to bridge assets in the opposite direction, seeking profitable opportunities within the Allbridge Core ecosystem.
 
 
-## what's a pool?
-
-Liquidity pools allow users to trade digital assets on decentralized exchanges 
-within the decentralized finance (DeFi) ecosystem,
-
-The assets held in a liquidity pool are locked in place by a smart
-contract and are added to the pool by liquidity providers. 
-
-In most cases, providers add an equal value of two tokens to a 
-pool to create a market, which is similar to trading pairs on traditional exchanges. 
-
-Market participants that provide liquidity (contribute crypto assets) to a liquidity pool will earn trading fees as 
-a reward for the trades executed within the pool. 
-
-
-
-# proof of concept (PoC) 
+# Proof of Concept (PoC) 
 
 ![Swag Image](../images/allbridge.png)
+
+we initiate a flashloan of $7.5M BUSD using `pancakeSwap.swap(0, 7_500_000e18, address(this), "Test");`.
 
 
 During the flashloan, the following steps are executed:
@@ -150,24 +136,19 @@ This sequence of actions exploits the liquidity pools, taking advantage of imbal
 
 ## One asset per chain
 
-To prevent the possibility of flash loan attacks, we will deploy a single liquidity pool per blockchain. Therefore, it will not be possible to execute an exploit in a single transaction. We may potentially return to the concept of multiple assets in the future once more extensive audits of our code are completed. But for now, we’re staying on the safe side.
+To prevent the possibility of flash loan attacks, they deployed a single liquidity pool per blockchain. Therefore, it would not be possible to execute an exploit in a single transaction. 
 
 ## Mitigation and Best Practices:
 
-
-
-Ensure verification in the bridge swap price calculation, and prohibit users from assuming multiple roles within the price calculation business logic for any given pool.
-
 Protocols need to add security layers,
-using at least two oracles to verify the price. An oracle serves as a means to obtain Real-World Data, enabling smart contracts to interact with external information. This approach would have detected anomalies, such as the mismatch where $40,000 USD should not have been able to purchase 700,000 BSC tokens, preventing potential vulnerabilities or exploits.
+using at least two oracles to verify the price. An oracle serves as a means to obtain Real-World Data, enabling smart contracts to interact with external information. This approach would have detected anomalies, such as the mismatch where $40,000 BUSD should not have been able to purchase 700,000 USDT tokens, preventing potential vulnerabilities or exploits.
 
 
 ## Conclusion 
 
-xd
+In summary, the attacker is executing a series of actions that involve swapping, depositing, and withdrawing across various pools. These actions create imbalances within the pools, leading to this vulnerability.
 
-
-**Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/88mph_exp.sol)
+**Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/Allbridge_exp2.sol)
 
 
 [**< Back**](https://patronasxdxd.github.io/CTFS/)
