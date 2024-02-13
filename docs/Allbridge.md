@@ -37,7 +37,7 @@ To illustrate, consider bridging BUSD from the BNB Chain to USDT on Tron. The pr
 
 ![Swag Image](../images/allbridge.png)
 
-we initiate a flashloan of $7.5M BUSD using `pancakeSwap.swap(0, 7_500_000e18, address(this), "Test");`.
+#### We initiate a flashloan of $7.5M BUSD
 
 
 During the flashloan, the following steps are executed:
