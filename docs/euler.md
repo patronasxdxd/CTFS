@@ -24,6 +24,19 @@ Euler
 # proof of concept (PoC) 
 ![euler Image](../images/euler/euler.png)
 
+![euler Image](../images/euler/euler2.png)
+
+![euler Image](../images/euler/euler3.png)
+
+![euler Image](../images/euler/euler4.png)
+
+![euler Image](../images/euler/euler5.png)
+
+![euler Image](../images/euler/euler6.png)
+
+![euler Image](../images/euler/euler7.png)
+
+![euler Image](../images/euler/euler8.png)
 
 
 
