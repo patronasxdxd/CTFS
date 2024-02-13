@@ -34,7 +34,7 @@ To illustrate, let's consider the process of bridging BUSD from the BNB Chain to
 
 # Proof of Concept (PoC) 
 
-![Swag Image](../images/allbridge.png)
+![Swag Image](../images/allbridge2.png)
 
 #### We initiate a flashloan of $7.5M BUSD
 
