@@ -116,12 +116,9 @@ This recursive borrowing process enables users to incrementally borrow larger am
 
 # proof of concept (PoC) 
 
-The exploit contract includes hard-coded values X for the targeted lending pools designed to optimize the attack and govern operating 
-parameters at each exploit stage. The table below describes all of the parameters:
+## Stage 1: FlashLoan
 
 ![euler Image](../images/euler/euler.png)
-
-## Stage 1: FlashLoan
 
 
 
