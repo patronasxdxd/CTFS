@@ -141,7 +141,7 @@ The attacker flashLoaned 30m USDC from AAVE.
 ## Stage 2: Deposit
 
 
-During this phase, we initiate the violator contract and transfer funds to it through the `transfer` function, using the parameters outlined in the preceding table. Following this, we invoke the `violator` function of the contract to execute our `deposit`. This deposit accounts for two-thirds of the flash-loaned USDC amount, directing 20 million to the pool and receiving 19.5M eDAI from Euler.
+During this phase, we initiate the violator contract and transfer funds to it through the `transfer` function, using the parameters outlined in the previous table. Following this, we invoke the `violator` function of the contract to execute our `deposit`. This deposit accounts for two-thirds of the flash-loaned USDC amount, directing 20 million to the pool and receiving 19.5M eDAI from Euler.
 
 
 
@@ -149,7 +149,7 @@ During this phase, we initiate the violator contract and transfer funds to it th
 
 ## Stage 3: First Mint
 
-Through the mint() operation, we will generate an amount ten times our initial deposit of USDC. This results in the creation of 195.6M eDAI and 200M dDAI, all minted from Euler.
+Through the "recursive" `mint()` function, we will generate an amount ten times our initial deposit of USDC. This results in the creation of 195.6M eDAI and 200M dDAI, all minted from Euler.
 
 
 ![euler Image](../images/euler/euler4.png)
@@ -157,14 +157,14 @@ Through the mint() operation, we will generate an amount ten times our initial d
 ## Stage 4: Payoff + Second Mint
 
 
-We will utilize the remaining one-third of funds to repay a portion of the debt through the `repay()' function, an equivalent of 10M DAI. Euler will burn 10M dDAI as a result.
+We will utilize the remaining one-third of the funds to repay a portion of the debt through the `repay()` function, an equivalent of 10M DAI. Euler will burn 10M dDAI as a result.
 
 
 ![euler Image](../images/euler/euler5.png)
 
 ## Stage 5: Donation
 
-Donating ten times the amount of our repaid funds to donateToReserves()—equivalent to 100M eDAI to Euler—results in our health factor falling below 1.
+Donating ten times the amount of our repaid funds to `donateToReserves()`, equivalent to 100M eDAI to Euler. Results in our health factor falling below 1. Meaning our **collateral** is lower than our **debt**.
 
 ![euler Image](../images/euler/euler6.png)
 
