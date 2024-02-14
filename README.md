@@ -5,4 +5,4 @@
   * [**88mph**](docs/88mph.md): unprotected init()
   * [**AffineDeFi**](docs/AffineDeFi.md): flash loan attack
   * [**Allbridge**](docs/Allbridge.md): flash loan 
-  * [**Euler**](docs/Euler.md): flash loan
+  * [**Euler**](docs/euler.md): flash loan
