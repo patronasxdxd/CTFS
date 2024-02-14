@@ -13,8 +13,8 @@ March 13, 2023
 
 ## Vulnerability
 
-Because of added functionaly to the protcal, a vurnable method `donateToReserves` was introduced.
-
+Because of added functionality to the protocol, a vulnerable method `donateToReserves` was introduced.
+The problem was that `checkLiquidity` was missing, unlike the other interactions that require a positive health factor.
 
 
 ```solidity
@@ -51,9 +51,7 @@ Because of added functionaly to the protcal, a vurnable method `donateToReserves
     }
 ```
 
-The problem was that `checkLiquidity` was missing, unlike the other interactions that involves a positive health factor.
-
-
+```solidity
   function checkLiquidity(address account) internal {
         uint8 status = accountLookup[account].deferLiquidityStatus;
 
@@ -63,7 +61,7 @@ The problem was that `checkLiquidity` was missing, unlike the other interactions
             accountLookup[account].deferLiquidityStatus = DEFERLIQUIDITY__DIRTY;
         }
     }
-
+```
 
 ## Analysis
 
@@ -82,17 +80,39 @@ As time progresses, the value of 100 ETH drops to $20,000, but the borrowed $30,
 
 Euler mandates users to maintain a minimum health factor (HF) of 1. If their health factor falls below this threshold, the user becomes eligible for liquidation.
 
-### Self-collateralized loans (Mints)
 
-Another unique feature of the Euler Protocol is a recursive borrowing functionality which allows one to leverage up their collateral using an eToken mint function. The feature allows for greater gas efficiency by using Euler’s built-in lending protocol without the need for external flash loan providers.
+## Euler Protocol's Borrowing Mechanism: Recursive Borrowing (Mints)
 
-The maximum mint amount is bound by SCF (Self-Collateral Factor) 0.95 and a token specific BF (Borrow Factor) using a formula below:
+The Euler Protocol introduces a unique feature called recursive borrowing, allowing users to increase their collateral without relying on external flash loan providers. This process is facilitated through the `mint()` function.
 
-### Exploited code
+### Understanding Borrowing Limits
 
-```solidity
-   code here
-```
+1. **Self-Collateral Factor (SCF):** This represents the amount of collateral needed for borrowing.
+2. **Borrow Factor (BF):** A token-specific value determining the maximum percentage that can be borrowed.
+
+### Practical Example: Borrowing USDC
+
+Consider borrowing 1,000 USDC:
+- The user needs to provide collateral worth over $1,634, considering the high Borrow Factor of USDC (e.g., 0.94).
+
+### How the `mint()` Function Works
+
+Using the `mint()` function, users can leverage their initial deposit. For instance:
+- With a 1,000,000 deposit, they could potentially generate a maximum debt of 18,800,000, without factoring in conversion rates.
+
+### Step-by-Step Borrowing Process:
+
+1. **First Borrowing (1,000 USDC):**
+   - Provide collateral worth $1,634.
+   - Borrow 1,000 USDC.
+
+2. **Subsequent Borrowing (1,000,000 USDC):**
+   - After repaying the initial 1,000 USDC, the user can leverage their collateral.
+   - Provide collateral worth 1,000,000.
+   - Borrow a larger amount, potentially up to 18,800,000.
+
+This recursive borrowing process enables users to incrementally borrow larger amounts against their collateral as they repay previous debts.
+
 
 # proof of concept (PoC) 
 
@@ -163,14 +183,14 @@ The liquidator contract initiates the liquidation process, taking advantage of t
 
 ## Stage 7: Withdrawal + FlashLoan Payoff
 
-After repaying the flashloan, the attacker gained 8,877,507 DAI
+The attacker successfully executed the withdrawal of the entire token amount from Euler using the withdraw() function, obtaining a sum of 38.9 million DAI. After the repayment of the flash loan, the attacker yielded a net gain of 8,877,507 DAI.
 
 `Attacker DAI balance after exploit: 8877507.34830669726742829`
 
 
 
 
-**Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/88mph_exp.sol)
+**Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/Euler_exp.sol)
 
 
 [**< Back**](https://patronasxdxd.github.io/CTFS/)
