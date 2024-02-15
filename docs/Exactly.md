@@ -3,7 +3,7 @@
 
 ## What's Exactly?
 
-used to emphasize the accuracy of a figure or description.
+Used to emphasize the accuracy of a figure or description.
 "they met in 1989 and got married exactly two years later"
 
 It's also a decentralized, self-custodial, open-source protocol to deposit and borrow crypto assets at variable and fixed interest rates.
@@ -24,10 +24,10 @@ It's also a decentralized, self-custodial, open-source protocol to deposit and b
 
 The exploiter creates a fake market, because of the lack of parameter checks it can be used instead of a legitimate market.
 
-The exploiter repeats the first step 8 times, resulting in a list of fake markets. The markets are each set with a victim address with deep pockets,
+The exploiter repeats the first step 8 times, resulting in a list of fake markets. The markets are each set with a victim address with a lot of tokens,
 the addresses of the victims are used within that `FakeMarket` contract to handle transactions.
 
-Now the victims use the leverage function, which will invoke the `noTransferLeverage` function.
+Now the attackers call the leverage function, using the victim and fake market to invoke the `noTransferLeverage` function.
 
 ![euler Image](../images/exactly/exactly4.drawio.png)
 
