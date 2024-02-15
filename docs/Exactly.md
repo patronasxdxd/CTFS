@@ -1,66 +1,53 @@
-# [Title]
+# Exactly
 
 
-## What's [Title]?
+## What's Exactly?
+
+used to emphasize the accuracy of a figure or description.
+"they met in 1989 and got married exactly two years later"
+
+It's also a decentralized, self-custodial, open-source protocol to deposit and borrow crypto assets at variable and fixed interest rates.
 
 
 ## Amount stolen
+**$7M USD**
 
-
+24 august 2023
 
 ## Vulnerability
 
-
-
-## Analysis
+**Untrusted Input**
 
 
 
-# proof of concept (PoC) ❗
+# Analysis
 
+The exploiter creates a fake market, because of the lack of parameter checks it can be used instead of a legitimate market.
 
-- The exploiter leverages the lack of parameter checks to create a fake market, exploiting its usability instead of a legitimate market.
+The exploiter repeats the first step 8 times, resulting in a list of fake markets. The markets are each set with a victim address with deep pockets,
+the addresses of the victims are used within that `FakeMarket` contract to handle transactions.
 
-- The exploiter repeats the first step 16 times, resulting in a list of fake markets.
-
-- The first 8 markets are set as victims, addreses of the victims are used within that FakeMarket contract to handle actions.
-
-
+Now the victims use the leverage function, which will invoke the `noTransferLeverage` function.
 
 ![euler Image](../images/exactly/exactly4.drawio.png)
 
-- In the permit function, the address is changed into the address of the victim so the msg sender is overwritten;
-
-- Now the 8 victims use the leverage function, this will invoke the noTransferLeverage to deposit, but since we gave a fake market place it will execute the deposit function that is on the fake market , we can alter that function.
-
-- In that fake market `deposit()` function, we trigger the crossDelevage(), which swapper tokens from the position to fake token of the attacker.
-
-
+In the permit function, the address is changed into the address of the victim so the _msg sender check passes.
 
 ![euler Image](../images/exactly/exactly5.drawio.png)
 
-`IERC20PermitUpgradeable(address(token)).safePermit(p.account, address(this), assets, p.deadline, p.v, p.r, p.s);`
 
-
-the line is calling a permit function on an ERC-20 token contract, 
-enabling the contract to interact with the token on behalf of the user 
-by using a permit instead of a traditional approval. This can be more gas-efficient 
-in some scenarios, especially in DeFi protocols where multiple interactions with tokens are common.
-
+The `noTransferLeverage` function triggers the deposit function within the market contract. However, as we provided a fake market, it resulted in the execution of the deposit function located within the market contract we created.
+  
+In the market `deposit()` function, we trigger the `crossDelevage()`, which swappes tokens from the position to the fake token of the attacker.
 
 
 ![euler Image](../images/exactly/exactly7.drawio.png)
 
 
-6.  Removed liquidity from the Uniswap pool gaining profit.
-
-
-* Finally, the hacker has liquidated position of the victim, and tries to call leverage on the position in order to manipulate it even further.
+ Finely we can call the `liquidate` function, to remove liquidity from the pool gaining profit.
 
 
 
-
-**Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/88mph_exp.sol)
 
 
 [**< Back**](https://patronasxdxd.github.io/CTFS/)
