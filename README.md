@@ -6,3 +6,4 @@
   * [**AffineDeFi**](docs/AffineDeFi.md): flash loan attack
   * [**Allbridge**](docs/Allbridge.md): flash loan 
   * [**Euler**](docs/euler.md): flash loan
+  * [**Exactly**](docs/Exactly.md): Untrusted Input
