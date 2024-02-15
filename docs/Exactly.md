@@ -22,16 +22,16 @@ It's also a decentralized, self-custodial, open-source protocol to deposit and b
 
 # Analysis
 
-The exploiter creates a fake market, because of the lack of parameter checks it can be used instead of a legitimate market.
+The exploiter creates a fake market, because of the lack of parameter checks, it can be used instead of a legitimate market.
 
-The exploiter repeats the first step 8 times, resulting in a list of fake markets. The markets are each set with a victim address with a lot of tokens,
+The exploiter repeats the first step 8 times, resulting in a list of fake markets. The markets are each set with a victim address that have a lot of tokens,
 the addresses of the victims are used within that `FakeMarket` contract to handle transactions.
 
 Now the attackers calls the leverage function, using the victim and fake market to invoke the `noTransferLeverage` function.
 
 ![euler Image](../images/exactly/exactly4.drawio.png)
 
-In the permit function, the address is changed into the victim's address so the _msg sender check passes.
+In the permit function, the address is changed into the victim's address so the `_msg sender` check passes.
 
 ![euler Image](../images/exactly/exactly5.drawio.png)
 
