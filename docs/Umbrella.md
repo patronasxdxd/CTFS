@@ -17,7 +17,7 @@ Underflow
 
 ## Analysis
 
-The contract was exploited by underflow, because its numbers are basicly bits, for example if a number has uint8 it wil be 0000 for the number 0, but if you subsctract 1 it will be 1111, which is 16, the same is used in this line `_balances[user] = _balances[user] - amount;` where the balanc eof the user was 0 and it gets deducted by a value. yes the balance wouldn't be a negative number but `2^256 - 50`
+The contract was exploited by underflow, the way underflow works is that numbers are basicly bits, for example if a number has uint8 it wil be 0000 for the number 0, but if you subsctract 1 it will be 1111, which is 16, the same is used in this line `_balances[user] = _balances[user] - amount;` where the balanc eof the user was 0 and it gets deducted by a value. yes the balance wouldn't be a negative number but `2^256 - 50`
 
 
 ### Representation of Numbers:
