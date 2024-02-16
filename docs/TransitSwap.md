@@ -22,9 +22,9 @@ In Ethereum, using the call function allows you to send a message to another con
 This message can include data that specifies which function of the target contract you want to call and with what arguments.
 
 The victims that were chosen had approved all Wrapped BNB to contract Claimtokens,
-the attacker could look at past transactions to see which other user accounts had approved this allowance.
+the attacker could look at past transactions to see which other wallets had approved this allowance.
 
-in our case `0x006de4df00....`  will call the `transferFrom` with the given parameters such as victim address, destination wallet, and amount.
+in our case `0x006de4df00....`  will call the `transferFrom` function with the given parameters such as victim address, destination wallet, and amount.
 
 
 ### Exploit code
