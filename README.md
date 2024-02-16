@@ -7,3 +7,6 @@
   * [**Allbridge**](docs/Allbridge.md): flash loan 
   * [**Euler**](docs/euler.md): flash loan
   * [**Exactly**](docs/Exactly.md): Untrusted Input
+  * [**TransitSwap**](docs/TransitSwap.md): Incorrect owner address validation
+
+
