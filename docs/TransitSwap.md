@@ -18,11 +18,11 @@ Incorrect owner address validation
 The attacker exploits a contract vulnerability by using dynamic `call`'s to other contracts.
 The protocol did not implement a verification mechanism to confirm whether the user initiating the token transfer is the same individual who granted the allowance.
 
-The victims that were chosen had approved all Wrapped BNB to contract Claimtokens
-the attacker could look at past transactions to see wich other user accounts had approved this allowance and a large amount of funds.
-
 In Ethereum, using the call function allows you to send a message to another contract.
 This message can include data that specifies which function of the target contract you want to call and with what arguments.
+
+The victims that were chosen had approved all Wrapped BNB to contract Claimtokens,
+the attacker could look at past transactions to see which other user accounts had approved this allowance.
 
 in our case `0x006de4df00....`  will call the `transferFrom` with the given parameters such as victim address, destination wallet, and amount.
 
