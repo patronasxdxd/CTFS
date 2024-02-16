@@ -16,12 +16,15 @@ Incorrect owner address validation
 ## Analysis
 
 The attacker exploits a contract vulnerability by using dynamic `call`'s to other contracts.
-The contracts being called lack proper verification for the accessed contract, called function, and related parameters.
+The protocol did not implement a verification mechanism to confirm whether the user initiating the token transfer is the same individual who granted the allowance.
+
+The victim User's had approved all Wrapped BNB to contract Claimtokens
+the attacker could look at past transactions to see wich other user accounts had approved this allowance and a large amount of funds.
 
 In Ethereum, using the call function allows you to send a message to another contract.
 This message can include data that specifies which function of the target contract you want to call and with what arguments.
 
-in our case `0x006de4df00....` and additional data will call the `transferFrom` with the given parameters such as victim address, destination wallet, and amount.
+in our case `0x006de4df00....`  will call the `transferFrom` with the given parameters such as victim address, destination wallet, and amount.
 
 
 ### Exploit code
@@ -39,30 +42,32 @@ in our case `0x006de4df00....` and additional data will call the `transferFrom` 
             "[End] Attacker USDT balance after exploit", BUSDT_TOKEN.balanceOf(address(this)), 18
         );
 ```
-
+### output: 
 
 ```
   [Start] Attacker USDT balance before exploit: 0.000000000000000000
   [End] Attacker USDT balance after exploit: 6312.858905558909501615
 ```
-Our victim User has approved all Wrapped BNB to contract Claimtokens
-the attacker studied past transactions to see he could use another person's account that has approved the funds
 
 
 # proof of concept (PoC) 
 
+## Get the balance of WBNB of the victim
+
+The attack contract calls the `balanceOf` function on the WBNB chain to get information of the amount of funds.
 
 ![Swag Image](../images/transitSwap/trans1.png)
 
-The claimTokens function in contract 0xed1a calls the transferFrom function in the WBNB contract.
-As a result, the attacker transfers WBNB tokens from user accounts (e.g., 0xcfbc) to the attacker's address (0x75f2).
+## Transfer tokens
+
+The exploit contract calls the `transferFrom(victim, wallet, amount)` function on the `TransitSwap` contract. This operation will go through various channels and eventually reach the `ClaimTokens` contract, that transfer the tokens from the victim to the attacker's wallet.
 
 ![Swag Image](../images/transitSwap/trans2.png)
 
 
 # Summary
 
-The attacker exploits a vulnerability in the contract by leveraging approval granted from the victim's account. By manipulating the input data, the attacker initiates a call to the transferFrom function, resulting in the transfer of all WBNB tokens from the victim's account, to the attacker's account.
+The attacker exploits a vulnerability in the contract by leveraging approval granted from the victim's account. By changing the input data, the attacker initiates a call to the transferFrom function, resulting in the transfer of all WBNB tokens from the victim's account, to the attacker's account.
 
 
 **Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/transitSwap_exp.sol)
