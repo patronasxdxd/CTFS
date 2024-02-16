@@ -60,7 +60,11 @@ As a result, the attacker transfers WBNB tokens from user accounts (e.g., 0xcfbc
 ![Swag Image](../images/transitSwap/trans2.png)
 
 
-**Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/transitSwap_exp.sol)
+# Summary
 
+The attacker exploits a vulnerability in the contract by leveraging approval granted from the victim's account. By manipulating the input data, the attacker initiates a call to the transferFrom function, resulting in the transfer of all WBNB tokens from the victim's account, to the attacker's account.
+
+
+**Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/transitSwap_exp.sol)
 
 [**< Back**](https://patronasxdxd.github.io/CTFS/)
