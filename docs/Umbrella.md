@@ -17,25 +17,11 @@ Underflow
 
 ## Analysis
 
-The contract was exploited by underflow, the way underflow works is that numbers are basicly bits, for example if a number has uint8 it wil be 0000 for the number 0, but if you subsctract 1 it will be 1111, which is 16, the same is used in this line `_balances[user] = _balances[user] - amount;` where the balanc eof the user was 0 and it gets deducted by a value. yes the balance wouldn't be a negative number but `2^256 - 50`
+The contract was exploited by underflow that occurred in withdrawal, The mechanism of underflow involves the binary representation of numbers. Consider a uint8, where the binary representation of 0 is 00000000. Subtracting 1 from it transforms the binary to 11111111, equivalent to 255 in decimal. Unlike a signed Integer (int8) that can be negative due to its first bit that indicates +/- :) 
 
+So, if using _balances[user] = _balances[user] - amount;  is called without checks, and _balances[user] is 0, subtracting the amount will wrap around to the maximum value of the data type, not become negative and not fail in this case. 
 
-### Representation of Numbers:
-
-- In Solidity, numbers are typically represented using two's complement notation.
-- For example, in a uint8 (8-bit unsigned integer), the binary representation of 0 is 00000000, and if you subtract 1, it becomes 11111111, which is 255 in decimal.
-
-### Underflow in Solidity:
-- In Solidity, unsigned integers cannot become negative through underflow. If you subtract a value from 0, it will wrap around to the maximum value for that data type.
-- For example, subtracting 1 from 0 in a uint8 will result in 255.
-
-### 2^256 - 50:
-- Solidity uses modular arithmetic, so subtracting 50 from 2^256 will not result in a negative number. It will wrap around and be equivalent to 2^256 - 50.
-
-### SafeMath:
-- To prevent underflows and overflows, especially in balance-related calculations, it's recommended to use SafeMath or similar libraries.
-- SafeMath includes checks to ensure that arithmetic operations cannot result in underflows or overflows.
-So, in your case, if you're using _balances[user] = _balances[user] - amount; without SafeMath, and _balances[user] is 0, subtracting amount will wrap around to the maximum value of the data type, not become negative. However, using SafeMath is a good practice to prevent unintended behavior due to underflows.
+So the transfer method will be called afterward and successfully drain the funds to the victim's wallet.
 
 
 ### Exploited code
