@@ -12,6 +12,7 @@ Skimming logic
 
 ## Analysis
 
+The XST token on Uniswap was exploited through a combination of swapping, skimming, and manipulating the liquidity pool. The attacker initiated a flash swap, performed skimming operations to claim tokens, and manipulated prices by selling tokens back to the pool. This led to a significant profit in WETH for the attacker.
 
 # proof of concept (PoC) 
 
