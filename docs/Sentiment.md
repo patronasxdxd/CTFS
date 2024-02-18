@@ -14,7 +14,8 @@ The attacker used view re-entrance Balancer bug to execute malicious code before
 Reentrant attacks in read-only mode occur when a view function is initially called and later reentered by another function that alters the contract's state.
 This vulnerability can be exploited by manipulating the values used in functions dependent on the returned results, leading to potential rate manipulation or incorrect parsing.
 
-The vulnerability happens when the balance is first queried, and than the fallback function is triggered to exploit the changed balances before the pool balance is changed.
+The vulnerability occurs when `_callPoolBalanceChange` returns the balance. Before the values are updated, the attacker exploits this window by borrowing additional tokens at the manipulated price caused by making an external from the fallback function to the contract that reads the collateral amount, at the temporal state which is manipulated. This allows them to take advantage of the temporarily distorted state of the pool, capitalizing on the price differential.
+
 
 ### Exploited code
 
@@ -42,20 +43,9 @@ The vulnerability happens when the balance is first queried, and than the fallba
     }
 ```
 
+# Proof of concept (PoC) 
 
-
-
-
-
-
-
-
-
-
-
-# proof of concept (PoC) 
-
-attacker flashloaned 606 WBTC,10_000 ETH and 18 million USDC tokens the from sentiments lending pool
+Attacker flashloaned 606 WBTC,10_000 ETH and 18 million USDC tokens the from sentiments lending pool
 
 ## Join pool
 
