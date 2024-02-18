@@ -1,9 +1,5 @@
 # Sentiment
 
-
-## What's Sentiment?
-
-
 ## Amount stolen
 **$1M USD**
 
@@ -11,9 +7,6 @@ March 3,2023
 
 ## Vulnerability
 Read-Only-Reentrancy
-
-Balancer integration
-
 
 ## Analysis
 The attacker used view re-entrance Balancer bug to execute malicious code before pool balances were updated and steal money using overpriced collateral
