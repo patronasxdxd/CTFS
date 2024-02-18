@@ -21,31 +21,7 @@ The attacker used view re-entrance Balancer bug to execute malicious code before
 Reentrant attacks in read-only mode occur when a view function is initially called and later reentered by another function that alters the contract's state.
 This vulnerability can be exploited by manipulating the values used in functions dependent on the returned results, leading to potential rate manipulation or incorrect parsing.
 
-// A reentrancy attack occurs when a smart contract fails to update its state before sending funds. This lets an attacker continuously call the contract’s withdraw function to drain funds.
-
-
-
-
-
-```solidity
- uint256[] memory amountIn = new uint256[](3);
-        amountIn[0] = 0;
-        amountIn[1] = 50 * 1e18;
-        amountIn[2] = 0;
-        bytes memory userDatas = abi.encode(uint256(1), amountIn, uint256(0));
-        IBalancerVault.JoinPoolRequest memory joinPoolRequest_1 = IBalancerVault.JoinPoolRequest({
-            asset: assets,
-            maxAmountsIn: amountIn,
-            userData: userDatas,
-            fromInternalBalance: false
-        });
-```
-
-
-```solidity
-      bytes memory execData = abi.encodeWithSelector(0xb95cac28, PoolId, account, account, joinPoolRequest_1);
-        AccountManager.exec(account, address(Balancer), 0, execData); // deposit 50 WETH
-```
+The vulnerability happens when the balance is first queried, and than the fallback function is triggered to exploit the changed balances before the pool balance is changed.
 
 ### Exploited code
 
@@ -73,21 +49,42 @@ This vulnerability can be exploited by manipulating the values used in functions
     }
 ```
 
+
+
+
+
+
+
+
+
+
+
+
 # proof of concept (PoC) 
 
 attacker flashloaned 606 WBTC,10_000 ETH and 18 million USDC tokens the from sentiments lending pool
 
-Entry point: _joinOrExit
+## Join pool
 
-Whats `_joinOrExit?`
-
-`_joinOrExit` function is called whenever the `joinPool` or `exitPool`
+The attacker starts the attack by joining the pool and depositing the flash-loaned tokens.
 
 
+## Exit pool
+After successfully joining the pool, the attacker can execute the `exitPool` function to withdraw their liquidity. However, instead of completing a straightforward withdrawal, the attacker leverages the fallback function of the `exitPool` to borrow additional tokens.
+
+## Borrow all
+
+The `borrowAll` function is then triggered, calculating the price based on the current values of the incomplete `exitPool` function within the pool. 
+
+![euler Image](../images/sentiment/Sentiment2.drawio.png)
 
 
+The key advantage lies in the ability to borrow additional tokens at a lower price. This advantageous pricing is made possible by utilizing the collateral price, which, at this point, is significantly higher. By capitalizing on the dynamic changes in collateral prices, the attacker maximizes their gains, obtaining more tokens than would be possible under regular circumstances.
 
-![euler Image](../images/sentiment/Sentiment1.drawio.png)
+## Return Exit Pool
+
+Finally, the attacker transfers the profits obtained from this manipulation back to their contract.
+
 ![euler Image](../images/sentiment/Sentiment2.drawio.png)
 
 
