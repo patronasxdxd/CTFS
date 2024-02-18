@@ -85,7 +85,7 @@ After skimming the tokens we sell the XST tokens to the WETH liquitiy pool, whic
 
 ![XTS Image](../images/XTS/liq.drawio.png)
 
-Now we repeat the first steps with new values:
+Now we repeat the previous steps with new values:
 
 ### Calculate swap
 
