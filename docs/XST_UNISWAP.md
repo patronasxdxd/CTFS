@@ -134,7 +134,7 @@ Since we initiated the flash swap with 78 WETH, and at the end of the flash swap
 
 ## Conclusion
 
-Because the XST tokens balance in the pool was bigger, while the reserves stayed the same it caused the second swap to be manipulated in a way that led to extreme profits for the attacker.
+Because the XST tokens balance in the pool was increasing, while the reserves stayed the same, it caused the second swap to be manipulated in a way that led to extreme profits for the attacker.
 
 
 
