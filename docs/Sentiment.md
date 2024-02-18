@@ -85,7 +85,7 @@ The key advantage lies in the ability to borrow additional tokens at a lower pri
 
 Finally, the attacker transfers the profits obtained from this manipulation back to their contract.
 
-![euler Image](../images/sentiment/Sentiment2.drawio.png)
+![euler Image](../images/sentiment/Sentiment1.drawio.png)
 
 
 **Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/88mph_exp.sol)
