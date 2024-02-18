@@ -6,6 +6,8 @@ XST is the platform's native cryptocurrency. Using XST, transaction validators a
 ## Amount stolen
 27.13 WETH
 
+2022-08-09
+
 
 ## Vulnerability
 Skimming logic
