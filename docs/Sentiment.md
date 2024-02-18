@@ -1,7 +1,7 @@
 # Sentiment
 
 
-## What's [Title]?
+## What's Sentiment?
 
 
 ## Amount stolen
@@ -16,18 +16,16 @@ Balancer integration
 
 
 ## Analysis
-Attacker used view re-entrance Balancer bug to execute malicious code before pool balances were updated and steal money using overpriced collateral
+The attacker used view re-entrance Balancer bug to execute malicious code before pool balances were updated and steal money using overpriced collateral
 
 Reentrant attacks in read-only mode occur when a view function is initially called and later reentered by another function that alters the contract's state.
 This vulnerability can be exploited by manipulating the values used in functions dependent on the returned results, leading to potential rate manipulation or incorrect parsing.
 
+// A reentrancy attack occurs when a smart contract fails to update its state before sending funds. This lets an attacker continuously call the contract’s withdraw function to drain funds.
 
-In order to join the pool you call the function `Balancer.joinPool{value: 0.001 ether}(PoolId, address(this), address(this), joinPoolRequest_2);` with the respected parameters, 
-also sending either asmassage value bnecause creating an account cost some ether. 
 
-But before we called this function there funciton was excuted wihtin the same flashloan but slightly different.
-Firstly an acccount was created `account = AccountManager.openAccount(address(this));` paying the slight free, than 50 WETH was deposited into it using `deposit`,
-Using a JoinPoolrequest, there was 
+
+
 
 ```solidity
  uint256[] memory amountIn = new uint256[](3);
@@ -59,16 +57,8 @@ Using a JoinPoolrequest, there was
         address payable recipient,
         PoolBalanceChange memory change
     ) private nonReentrant withRegisteredPool(poolId) authenticateFor(sender) {
-        // This function uses a large number of stack variables (poolId, sender and recipient, balances, amounts, fees,
-        // etc.), which leads to 'stack too deep' issues. It relies on private functions with seemingly arbitrary
-        // interfaces to work around this limitation.
 
-        InputHelpers.ensureInputLengthMatch(change.assets.length, change.limits.length);
-
-        // We first check that the caller passed the Pool's registered tokens in the correct order, and retrieve the
-        // current balance for each.
-        IERC20[] memory tokens = _translateToIERC20(change.assets);
-        bytes32[] memory balances = _validateTokensAndGetBalances(poolId, tokens);
+        ** removed non exploit code **
 
         // The bulk of the work is done here: the corresponding Pool hook is called, its final balances are computed,
         // assets are transferred, and fees are paid.
@@ -78,30 +68,14 @@ Using a JoinPoolrequest, there was
             uint256[] memory paidProtocolSwapFeeAmounts
         ) = _callPoolBalanceChange(kind, poolId, sender, recipient, change, balances);
 
-        // All that remains is storing the new Pool balances.
-        PoolSpecialization specialization = _getPoolSpecialization(poolId);
-        if (specialization == PoolSpecialization.TWO_TOKEN) {
-            _setTwoTokenPoolCashBalances(poolId, tokens[0], finalBalances[0], tokens[1], finalBalances[1]);
-        } else if (specialization == PoolSpecialization.MINIMAL_SWAP_INFO) {
-            _setMinimalSwapInfoPoolBalances(poolId, tokens, finalBalances);
-        } else {
-            // PoolSpecialization.GENERAL
-            _setGeneralPoolBalances(poolId, finalBalances);
-        }
 
-        bool positive = kind == PoolBalanceChangeKind.JOIN; // Amounts in are positive, out are negative
-        emit PoolBalanceChanged(
-            poolId,
-            sender,
-            tokens,
-            // We can unsafely cast to int256 because balances are actually stored as uint112
-            _unsafeCastToInt256(amountsInOrOut, positive),
-            paidProtocolSwapFeeAmounts
-        );
+        ** removed non exploit code **
     }
 ```
 
 # proof of concept (PoC) 
+
+attacker flashloaned 606 WBTC,10_000 ETH and 18 million USDC tokens the from sentiments lending pool
 
 Entry point: _joinOrExit
 
@@ -113,7 +87,8 @@ Whats `_joinOrExit?`
 
 
 
-![euler Image](../images/euler/euler.png)
+![euler Image](../images/sentiment/Sentiment1.drawio.png)
+![euler Image](../images/sentiment/Sentiment2.drawio.png)
 
 
 **Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/88mph_exp.sol)
