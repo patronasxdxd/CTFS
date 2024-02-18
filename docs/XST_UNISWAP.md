@@ -14,7 +14,7 @@ Skimming logic
 
 The XST token on Uniswap was exploited through a combination of swapping, skimming, and manipulating the liquidity pool. The attacker initiated a flash swap, performed skimming operations to claim tokens, and manipulated prices by selling tokens back to the pool. This led to a significant profit in WETH for the attacker.
 
-# proof of concept (PoC) 
+# Proof of concept (PoC) 
 
 We check the balance of WETH within the XST pool on Uniswap and initiate a swap for twice that amount. This action triggers a callback, invoking our custom `uniswapV2Call` function.
 
@@ -119,7 +119,7 @@ Now we repeat the first steps with new values:
 
 ### Profit
 
-Since we initiated the flash swap with 78 WETH, and at the and of the flash swap had 105 WETH, we were able to send the profit back to our wallet
+Since we initiated the flash swap with 78 WETH, and at the end of the flash swap had 105 WETH, we were able to send the profit back to our wallet
 
 
 ![XTS Image](../images/XTS/profit.drawio.png)
@@ -131,6 +131,10 @@ Since we initiated the flash swap with 78 WETH, and at the and of the flash swap
   Attacker WETH profit after exploit: 27.130181656842120567
 ```
 
+
+## Conclusion
+
+Because the XST tokens balance in the pool was bigger, while the reserves stayed the same it caused the second swap to be manipulated in a way that led to extreme profits for the attacker.
 
 
 
