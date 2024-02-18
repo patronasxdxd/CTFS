@@ -1,7 +1,7 @@
 # XST
 
 ## What's XST?
-
+XST is the platform's native cryptocurrency. Using XST, transaction validators acquire their rights to process transactions. These rights are tokenized as NFTs, movable assets known as StealthNodes, each of which is assigned a slot in a block validation schedule.
 
 ## Amount stolen
 27.13 WETH
@@ -51,10 +51,7 @@ With the following parameters:
   uint256 amountOutXST = amountSellWETH * 997 * reserve0 / (reserve1 * 1000 + amountSellWETH * 997);
 ```
 
-
-
-
-swap ST tokens for WETH tokens in the liquidity pool of Uniswap XST
+Finally, swap the WETH tokens for XST tokens in the liquidity pool of Uniswap XST
 
 ```solidity
   WETH.transfer(address(Pair2), amountSellWETH);
@@ -78,7 +75,7 @@ It's often used to retrieve additional tokens accumulated due to various operati
 ```
 
 
-After skimming the tokens we sell the XST tokens to the WETH liquitiy pool, which allows us to manipulate the price
+After skimming the tokens we sell the XST tokens to the WETH liquitiy pool, which allows us to manipulate the price within this flash swap.
 
 
 ```solidity
@@ -87,11 +84,16 @@ After skimming the tokens we sell the XST tokens to the WETH liquitiy pool, whic
 
 ![XTS Image](../images/XTS/liq.drawio.png)
 
-Now we repeat the first steps:
+Now we repeat the first steps with new values:
 
 ### Calculate swap
 
 ![XTS Image](../images/XTS/para2.drawio.png)
+
+
+
+![XTS Image](../images/XTS/after.drawio.png)
+
 
 ```solidity
    uint256 amountOutWETH = amountSellXST * 997 * reserve1 / (reserve0 * 1000 + amountSellXST * 997);
@@ -112,16 +114,21 @@ Now we repeat the first steps:
 ```
 
 
-![XTS Image](../images/XTS/after.drawio.png)
 
 
-### profit
+### Profit
 
 Since we initiated the flash swap with 78 WETH, and at the and of the flash swap had 105 WETH, we were able to send the profit back to our wallet
 
 
 ![XTS Image](../images/XTS/profit.drawio.png)
 
+
+
+```
+  Attacker WETH profit before exploit: 0.000000000000000000
+  Attacker WETH profit after exploit: 27.130181656842120567
+```
 
 
 
