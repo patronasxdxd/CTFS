@@ -1,5 +1,8 @@
 # Sentiment
 
+![euler Image](../images/sentiment/Sentiment1.drawio.png)
+
+
 ## Amount stolen
 **$1M USD**
 
@@ -67,13 +70,12 @@ The key advantage lies in the ability to borrow additional tokens at a lower pri
 
 Finally, the attacker transfers the profits obtained from this manipulation back to their contract.
 
+![euler Image](../images/sentiment/Sentiment1.drawio.png)
 
 
 # Prevent read-only reentrancy
 
 You can prevent this by making a call to any other functions besides the function that has a reentrant guard, if the function fails it will indicate that the nonreetrant function is active and you shouldn't read the state of the contract. If it doesn't fail you can safely call the function to get the state of that contract.
-
-![euler Image](../images/sentiment/Sentiment1.drawio.png)
 
 
 **Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/88mph_exp.sol)
