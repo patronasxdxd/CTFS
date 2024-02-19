@@ -10,5 +10,6 @@
   * [**TransitSwap**](docs/TransitSwap.md): Incorrect owner address validation
   * [**Umbrella**](docs/Umbrella.md): underflow
   * [**XST**](docs/XST_UNISWAP.md): skimming
+  * [**Sentiment**](docs/Sentiment.md): read-only reentrancy
 
 
