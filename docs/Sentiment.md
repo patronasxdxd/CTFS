@@ -13,7 +13,7 @@ The attacker exploited read-only reentrancy to borrow additional tokens before t
 
 The function had a nonReentrant modifier which doesn't allow the function to be called again, which is great to be protected against reentrance, but nothing prevents the malicious user from making another call to another contract which reads the state of this contract. 
 
-The vulnerability occurs when you join or exit a pool and it will call `_callPoolBalanceChange` to return the balance. The attacker exploits this by borrowing additional tokens at the discounted price caused by the fact that the borrow function gets its price from reading the state of the previous call that is ongoing. This allows the exploiter to take advantage of the temporarily distorted state of the pool, profiting from the price differential.
+The vulnerability occurs when you join or exit a pool, where it will call `_callPoolBalanceChange` to return the balance. The attacker exploits this by borrowing additional tokens during the fallback call at the discounted price caused by the fact that the borrow function gets its price from reading the state of the previous call that is ongoing. This allows the exploiter to take advantage of the temporarily distorted state of the pool, profiting from the price differential.
 
 
 ### Exploited code
@@ -61,7 +61,7 @@ The `borrowAll` function is then triggered, calculating the price based on the c
 ![euler Image](../images/sentiment/Sentiment2.drawio.png)
 
 
-The key advantage lies in the ability to borrow additional tokens at a lower price. This advantageous pricing is made possible by utilizing the collateral price, which, at this point, is significantly higher. By capitalizing on the dynamic changes in collateral prices, the attacker maximizes their gains, obtaining more tokens than would be possible under regular circumstances.
+The key advantage lies in the ability to borrow additional tokens at a lower price. This discounted pricing is made possible by utilizing the collateral price, which, at this point, is significantly higher. By capitalizing on the dynamic changes in collateral prices, the attacker maximizes their gains, obtaining more tokens than would be possible under regular circumstances.
 
 ## Return Exit Pool
 
