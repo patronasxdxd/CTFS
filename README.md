@@ -11,5 +11,6 @@
   * [**Umbrella**](docs/Umbrella.md): underflow
   * [**XST**](docs/XST_UNISWAP.md): skimming
   * [**Sentiment**](docs/Sentiment.md): read-only reentrancy
+  * [**BH**](docs/bh.md): price manipulation
 
 
