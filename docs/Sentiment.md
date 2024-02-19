@@ -9,10 +9,9 @@ March 3,2023
 Read-Only-Reentrancy
 
 ## Analysis
-The attacker used view re-entrance Balancer bug to execute malicious code before pool balances were updated and steal money using overpriced collateral
+The attacker used read-only reentrancy to borrow additional tokens before pool balances were updated at a discounted value, and gain a profit.
 
-Reentrant attacks in read-only mode occur when a view function is initially called and later reentered by another function that alters the contract's state.
-This vulnerability can be exploited by manipulating the values used in functions dependent on the returned results, leading to potential rate manipulation or incorrect parsing.
+The function had a nonReentrant modifier wich doesn't allow the funcion to be called again, wich is great to be protected against reetrance, but nothing prevents the malicious user from making another call to another contract which reads the state of this contract. 
 
 The vulnerability occurs when `_callPoolBalanceChange` returns the balance. Before the values are updated, the attacker exploits this window by borrowing additional tokens at the manipulated price caused by making an external from the fallback function to the contract that reads the collateral amount, at the temporal state which is manipulated. This allows them to take advantage of the temporarily distorted state of the pool, capitalizing on the price differential.
 
