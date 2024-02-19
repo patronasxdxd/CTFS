@@ -9,11 +9,11 @@ March 3,2023
 Read-Only-Reentrancy
 
 ## Analysis
-The attacker used read-only reentrancy to borrow additional tokens before pool balances were updated at a discounted value, and gain a profit.
+The attacker exploited read-only reentrancy to borrow additional tokens before the collateral was updated, this allowed the user to borrow tokens at a discounted value, and gain a profit.
 
-The function had a nonReentrant modifier wich doesn't allow the funcion to be called again, wich is great to be protected against reetrance, but nothing prevents the malicious user from making another call to another contract which reads the state of this contract. 
+The function had a nonReentrant modifier which doesn't allow the function to be called again, which is great to be protected against reentrance, but nothing prevents the malicious user from making another call to another contract which reads the state of this contract. 
 
-The vulnerability occurs when `_callPoolBalanceChange` returns the balance. Before the values are updated, the attacker exploits this window by borrowing additional tokens at the manipulated price caused by making an external from the fallback function to the contract that reads the collateral amount, at the temporal state which is manipulated. This allows them to take advantage of the temporarily distorted state of the pool, capitalizing on the price differential.
+The vulnerability occurs when you join or exit a pool and it will call `_callPoolBalanceChange` to return the balance. Before the values are updated, the attacker exploits this window by borrowing additional tokens at the manipulated price caused by making an external call from the fallback function to the contract that reads the collateral amount, at the temporal state which is in this case a bigger amount of collateral tokens. This allows the exploiter to take advantage of the temporarily distorted state of the pool, profiting from the price differential.
 
 
 ### Exploited code
