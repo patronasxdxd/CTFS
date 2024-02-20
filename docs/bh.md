@@ -16,13 +16,7 @@ Price manipulation
 
 ## Analysis
 
-
-
-### Exploited code
-
-```solidity
-   code here
-```
+The BH token suffered a price manipulation attack caused by flash loaning and swapping funds.
 
 # proof of concept (PoC) 
 
