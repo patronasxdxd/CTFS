@@ -26,6 +26,13 @@ Price manipulation
 
 # proof of concept (PoC) 
 
+![euler Image](../images/bh/BH1.drawio.png)
+
+![euler Image](../images/bh/BH2.drawio.png)
+![euler Image](../images/bh/BH3.drawio.png)
+
+
+
 ![euler Image](../images/bh/bh.drawio.png)
 
 
