@@ -31,9 +31,9 @@ The attacker flash loaned a humongous amount of `USDT` tokens from multiple sour
 - **step2:** The attacker Swapped 10 million `USDT` for `WBNB` from `WBNB_BUSDT`;
 - **step4:** The attacker Flashloaned an additional 15 million `USDT` from `BUSDT_USDC`
 - **step7:** The attacker Swapped(15 million `USDT` for `BH` tokens causing the liquidity removal ratio to change in favor of the attacker.
-- **step9:** The attacker provoked the `0x4e290832` function which withdraws the `LP` tokens at an extremely discounted rate.
+- **step9:** The attacker provoked the `0x4e290832` function which extracts liquidity from the pool, the `BH` tokens are decreased for the attacker, and `USDT` is received and increased at an extremely discounted rate.
 
-![bh Image](../images/bh/BH3.drawio.png)
+![bh Image](../images/bh/BH4.drawio.png)
 
 The loan was repaid, and the profit was moved.
 
