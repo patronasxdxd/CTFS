@@ -11,13 +11,13 @@ February 16, 2023
 
 
 ## Vulnerability
-
+Business Logic Flaw
 
 
 ## Analysis
 
 The `emergencyWithdraw` function in the `MasterPlatypus` contract allows a user to withdraw
-their LP tokens from a given pool without caring about rewards.
+their LP tokens from a given pool without claiming any accrued rewards.
 
 ```solidity
      function emergencyWithdraw(uint256 _pid) public nonReentrant {
@@ -56,7 +56,7 @@ their LP tokens from a given pool without caring about rewards.
 ```
 
 The only check done by this function is whether the user is solvent or not, 
-using `PlatypusTreasure.isSolvent`. That function uses an internal function called `_isSolvent`. 
+using `PlatypusTreasure.isSolvent`. 
 
 
 ```solidity
@@ -82,6 +82,7 @@ using `PlatypusTreasure.isSolvent`. That function uses an internal function call
 
 The underlying mechanism of this check involves the utilization of an internal function 
 named `_isSolvent`. The boolean variable returned by this function is true when the user's debt is less than or equal to its USP borrow limit. 
+
 Essentially, a user is considered solvent if their collateral is sufficient to cover their debt. It's crucial to note that withdrawing collateral 
 must not result in any outstanding debt. The `emergencyWithdraw` function allows users with debt to withdraw all collateral 
 LP tokens without settling the previously borrowed USP associated with that collateral, thereby leaving the protocol in a state of indebtedness.
@@ -101,18 +102,18 @@ settling any outstanding debt they might have incurred while using the protocol.
 4. `Deposit` LP tokens to the `masterPlatypus` contract as **collateral**
 5. `Borrow` as much **USP** as possible against the LP collateral
 6. Execute `emergencyWithdraw` to get the LP collateral back **without** paying debt
+7. Payback flash loan
+8. Swap USP for Platypus pool liquidity in the form of other stablecoins.
 
 
 
 
-### Flashloan
-```solidity
-     function testExploit() external {
-          aaveV3.flashLoanSimple(address(this), address(USDC), 44_000_000 * 1e6, new bytes(0), 0);
-     }
-```
+### Flash Loan
 
-### Flashloan fallback
+`aaveV3.flashLoanSimple(address(this), address(USDC), 44_000_000 * 1e6, new bytes(0), 0);`
+ 
+
+### Flash Loan fallback
 ```solidity
      function executeOperation(
         address asset,
@@ -165,11 +166,6 @@ settling any outstanding debt they might have incurred while using the protocol.
         Pool.swap(address(USP), address(DAI_E), 700_000 * 1e18, 0, address(this), block.timestamp);
     }
 ```
-
-
-
-
-
 
 
 **Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/Platypus_exp.sol)
