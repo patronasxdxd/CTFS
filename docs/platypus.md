@@ -19,7 +19,7 @@ Business Logic Flaw
 The `emergencyWithdraw` function in the `MasterPlatypus` contract allows a user to withdraw
 their LP tokens from a given pool without claiming any accrued rewards.
 
-This function was introduced due to problems where users were unable to use the `withdraw` function to receive their LP tokens.
+This function was introduced due to problems where users were unable to use `withdraw` to receive their LP tokens.
 
 ```solidity
      function emergencyWithdraw(uint256 _pid) public nonReentrant {
@@ -83,7 +83,7 @@ using `PlatypusTreasure.isSolvent`.
 ```
 
 The underlying mechanism of this check involves the utilization of an internal function 
-named `_isSolvent`. The boolean variable this function returns is true when the user's debt is less than or equal to its USP borrow limit. 
+named `_isSolvent`. The boolean variable in this function returns is true when the user's debt is less than or equal to its USP borrow limit. 
 
 A user is considered solvent if their collateral is sufficient to cover their debt. It's crucial to note that withdrawing collateral 
 must not result in any outstanding debt. The `emergencyWithdraw` function allows users with debt to withdraw all collateral 
@@ -170,6 +170,11 @@ settling any outstanding debt they might have incurred while using the protocol.
         Pool.swap(address(USP), address(DAI_E), 700_000 * 1e18, 0, address(this), block.timestamp);
     }
 ```
+
+
+## conclusion
+
+Under normal circumstances, when borrowing USP against LP collateral, the standard protocol dictates that the withdrawal of collateral is only allowed upon the repayment of the borrowed USP. However, the exploitation of the `emergencyWithdraw` function introduces a vulnerability. By leveraging `emergencyWithdraw`, one can secure the collateral without fulfilling the obligation of repaying the borrowed funds, essentially allowing the claim of collateral while still keeping the borrowed assets. 
 
 
 **Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/Platypus_exp.sol)
