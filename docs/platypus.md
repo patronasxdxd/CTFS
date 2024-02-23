@@ -5,7 +5,7 @@
 Platypus Finance is a single-sided Automatic Market Maker (AMM) for stablecoins built on the Avalanche network that is designed to optimize capital efficiency
 
 ## Amount stolen
-**$8.5 Million USD **
+**$8.5 Million USD**
 
 February 16, 2023  
 
@@ -18,6 +18,8 @@ Business Logic Flaw
 
 The `emergencyWithdraw` function in the `MasterPlatypus` contract allows a user to withdraw
 their LP tokens from a given pool without claiming any accrued rewards.
+
+This function was introduced due to problems where users were unable to use the `withdraw` function to receive their LP tokens.
 
 ```solidity
      function emergencyWithdraw(uint256 _pid) public nonReentrant {
@@ -55,7 +57,7 @@ their LP tokens from a given pool without claiming any accrued rewards.
    }
 ```
 
-The only check done by this function is whether the user is solvent or not, 
+The problem is that there is only one check done by this function, it checks whether the user is solvent or not, 
 using `PlatypusTreasure.isSolvent`. 
 
 
@@ -81,15 +83,17 @@ using `PlatypusTreasure.isSolvent`.
 ```
 
 The underlying mechanism of this check involves the utilization of an internal function 
-named `_isSolvent`. The boolean variable returned by this function is true when the user's debt is less than or equal to its USP borrow limit. 
+named `_isSolvent`. The boolean variable this function returns is true when the user's debt is less than or equal to its USP borrow limit. 
 
-Essentially, a user is considered solvent if their collateral is sufficient to cover their debt. It's crucial to note that withdrawing collateral 
+A user is considered solvent if their collateral is sufficient to cover their debt. It's crucial to note that withdrawing collateral 
 must not result in any outstanding debt. The `emergencyWithdraw` function allows users with debt to withdraw all collateral 
-LP tokens without settling the previously borrowed USP associated with that collateral, thereby leaving the protocol in a state of indebtedness.
+LP tokens gained from the flash loan without settling the previously borrowed USP associated with that collateral, leaving the protocol indebted.
 
 In many decentralized finance (DeFi) protocols, it is typical for a liquidity pool to automatically repay 
 a user's debt when they withdraw their funds. This mechanism ensures that users cannot withdraw their collateral without
 settling any outstanding debt they might have incurred while using the protocol.
+
+
 
 
 # proof of concept (PoC) 
