@@ -12,5 +12,8 @@
   * [**XST**](docs/XST_UNISWAP.md): skimming
   * [**Sentiment**](docs/Sentiment.md): read-only reentrancy
   * [**BH**](docs/bh.md): price manipulation
+  * [**platypus**](docs/platypus.md): Business Logic Flaw
+
+
 
 
