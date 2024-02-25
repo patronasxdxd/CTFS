@@ -71,18 +71,21 @@ This counter variable serves as a safety measure, preventing any other party fro
 
 The Pool address is set via the onlyOwner initPool() function on the token.
 
+to pass the `onlyOwner` check, we can gain acces of the contract by the following function.
+
 
 ```solidity
-   
+   function transReward(bytes memory data) public {
+      pool.functionCall(data);
+   }
 ```
 
-In the concluding step, the ownership of the pool contract is established by invoking the `transReward()` function on the token.
-By calling `CARROT_TOKEN.transReward(abi.encodeWithSelector(0xbf699b4b, address(this)));` with the selector `"0xbf699b4b"`, wich in English is the "change 
-owner" function, and with the desired address specified as `"0x5575406ef6b15eec1986c412b9fbe144522c45ae"`.
+It seems that the function lacks access control and is public for everyone, so in the concluding step, the ownership of the pool contract is established by invoking the `transReward()` function on the token with the selector `"0xbf699b4b"`, which in English is the "change 
+owner" function and the desired address is specified as `"0x5575406ef6b15eec1986c412b9fbe144522c45ae"`.
 
 
 
-# proof of concept (PoC) 
+# proof of concept (PoC)
 ![euler Image](../images/euler/euler.png)
 
 
