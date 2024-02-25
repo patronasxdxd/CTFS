@@ -24,8 +24,8 @@ to prevent unapproved token transfers,
 The `sub` function in the `beforetransfer` method will subtract the `amount` from the allowance. If the subtraction results
 a value less than zero indicates that the transfer amount exceeds the allowance limit and will fail.
 
-This pattern involves the Action-Check pattern, where you act, in this case transferring tokens without explicitly checking for permission. 
-The actual check is deferred to a later point in the code, the `sub` function on the allowances mapping.
+This pattern involves the **Action-Check** pattern, where you act first, in this case transferring tokens without explicitly checking for permission. 
+And check afterwards, in the `sub` function on the allowances mapping.
 
 This final check can be avoided if the `_msgSender()` on the `_isExcludedFromFee` mapping is set to true, 
 giving the `_msgSender()` the ability to move any user's tokens at its will. 
@@ -100,10 +100,6 @@ owner" function and the desired address is specified as `"0x5575406ef6b15eec1986
   // Swap all stolen Carrot to BUSDT
   _CARROTToBUSDT();
 ```
-
-
-![euler Image](../images/https://gifsec.com/wp-content/uploads/2022/11/stitch-gif-27.gif)
-
 
 **Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/Carrot_exp.sol)
 
