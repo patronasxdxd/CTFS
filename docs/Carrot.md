@@ -1,5 +1,7 @@
 # Carrot
 
+![euler Image](../images/CarrotWhy.drawio.png)
+
 
 ## What's Carrot?
 a rewards platform where users can earn bitcoin simply by supporting the brands and creators they love. Creators of all sorts
@@ -86,8 +88,6 @@ owner" function and the desired address is specified as `"0x5575406ef6b15eec1986
 
 
 # proof of concept (PoC)
-![euler Image](../images/euler/euler.png)
-
 
 ```solidity
         // Call vulnerable transReward() to set this contract as owner. No auth control
@@ -101,9 +101,6 @@ owner" function and the desired address is specified as `"0x5575406ef6b15eec1986
         // Swap all stolen Carrot to BUSDT
         _CARROTToBUSDT();
 ```
-
-
-
 
 **Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/Carrot_exp.sol)
 
