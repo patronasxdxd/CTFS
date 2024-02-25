@@ -16,7 +16,7 @@ Insufficient access control
 
 ## Analysis
 
-The Carrot token relies on '_allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance")'
+The Carrot token relies on `_allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance")`
 to prevent unapproved token transfers,
 
 the `sub` function in the `beforetransfer` method will subtract the `amount` from the allowance. If the subtraction results
@@ -67,15 +67,13 @@ This counter variable serves as a safety measure, preventing any other party fro
   }          
   _beforeTokenTransfer(from, to, amount);
 }
+```
 
 The Pool address is set via the onlyOwner initPool() function on the token.
 
 
 ```solidity
-function initPool(address _Pool) public onlyOwner {
-    require(pool == address(0));
-    pool = _Pool;
-}
+   
 ```
 
 In the concluding step, the ownership of the pool contract is established by invoking the `transReward()` function on the token.
