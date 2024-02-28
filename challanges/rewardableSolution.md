@@ -40,7 +40,7 @@ The function `withdrawThatCannotBeReentered` had a `nonReentrant` modifier which
 
 # proof of concept (PoC) 
 
-![rewardable Image](./challangeImages/rewardable.drawio.png)
+![rewardable Image](../challangeImages/rewardable.drawio.png)
 
 
     - The user initiates a deposit of 10 ether into the attack contract.
@@ -56,15 +56,15 @@ The function `withdrawThatCannotBeReentered` had a `nonReentrant` modifier which
 
 The user `deposit` KDG tokens to the contract
 
-![rewardable Image](./challangeImages/rewardable2.drawio.png)
+![rewardable Image](../challangeImages/rewardable2.drawio.png)
 
 After the `withdraw` funciton is triggered, the attacker deposit `USDT` to the same contract. Because the reentrant function isn't finished yet, the amount/state is not updated to 0 for kdg tokens. 
 
-![rewardable Image](./challangeImages/rewardable3.drawio.png)
+![rewardable Image](../challangeImages/rewardable3.drawio.png)
 
 
 ## Prevent read-only reentrancy
 
 You can prevent this by making a call to any other functions besides the function that has a reentrant guard, if the function fails it will indicate that the nonreetrant function is active and you shouldn’t read the state of the contract. If it doesn’t fail you can safely call the function to get the state of that contract.
 
-
+[**< Back >**](https://patronasxdxd.github.io/CTFS/)

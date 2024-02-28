@@ -43,4 +43,4 @@ Overflows are extremely common in smart contracts and they should be prevented b
 especially in methods involving transactions, to safeguard against overflows. While it may introduce 
 additional gas costs, the security benefits far outweigh the risks associated with potential vulnerabilities 
 
-
+[**< Back >**](https://patronasxdxd.github.io/CTFS/)

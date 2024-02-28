@@ -45,7 +45,7 @@ By calling the `withdrawAll` function again, the attacker retains funds in their
 
 
 
-![euler Image](./challangeImages/reentrancy.drawio.png)
+![euler Image](../challangeImages/reentrancy.drawio.png)
 
 
 ### Exploited code
@@ -201,6 +201,4 @@ modifier noReetrant() {
 To prevent a user to exploit your contract its important to secure it for reentrancy.
 You can do it by adding a modifier or removing the player balance first and than transfering ETH.
 
-
-
-
+[**< Back >**](https://patronasxdxd.github.io/CTFS/)
