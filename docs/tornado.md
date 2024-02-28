@@ -8,11 +8,7 @@ With governance, users can submit proposals that execute code within the Tornado
 
 However, a significant issue arises when a user deploys malicious code on an address previously accepted through a proposal. In this scenario, the code can be executed, enabling the user to seize control over ownership or withdrawal of all funds in the pool.
 
-To illustrate this vulnerability, we can distinguish between a standard situation and a exploited one.
-
-
-
-
+To illustrate this vulnerability, we can distinguish between a standard situation and an exploited one.
 
 
 ![Tornado Image](../images/tornadocash/tornadocash3.drawio.png)
@@ -26,16 +22,11 @@ The nonce represents the number of transactions the address has initiated, start
 
 ![Tornado Image](../images/tornadocash/tornadocash2.drawio.png)
 
-To reset nonce you will have to redeploy the address of the contract.
-the exploit is done by destroying the initial proposal of the proposal deployer
-and redeploying it on the same address by using the `create2` function, where its able to reset the nonce and successfully swap the safe code
-with malicious code.
-
 To reset the nonce, the contract address must be redeployed. The exploit is done by destroying the initial proposal and the proposal deployer and subsequently redeploying it at the same address using the `create2` function. This will reset the nonce
 
 
 
-## POC
+## Proof of Concept
 
 ![Tornado Image](../images/tornadocash/tornadocash.drawio.png)
 
