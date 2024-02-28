@@ -4,49 +4,50 @@
 
 ## Analysis
 
-With governance the user is allowed to send proposal that execute code in the tornade prototcal, there is a safety check to see if the code contains malicious code
-and it prevents the user from executing it.
+With governance, users can submit proposals that execute code within the Tornado protocol. A safety check is in place to examine the code for malicious content, preventing its execution if any is detected.
 
-The problem is that once a user deploys malicious code on the same address as the previously accepted proposal. It can be executed, where the user is able
-to gain control of the ownership or withdrawal of all the funds in the pool.
+However, a significant issue arises when a user deploys malicious code on an address previously accepted through a proposal. In this scenario, the code can be executed, enabling the user to seize control over ownership or withdrawal of all funds in the pool.
 
-To demonstrate this we can differentiate a normal situation from an exploited one.
-
-
-![Tornado Image](../images/tornadocash/tornadocash2.drawio.png)
+To illustrate this vulnerability, we can distinguish between a standard situation and a exploited one.
 
 
 
-![Tornado Image](../images/tornadocash/tornadocash.drawio.png)
 
 
 
 ![Tornado Image](../images/tornadocash/tornadocash3.drawio.png)
 
 
-
-
 ## How can we deploy a proposal at the same address?
 
-A address is made by this formula ` address = last 20 bytes of sha3(rlp(sender,nonce))` 
+The address is generated using the formula `address = last 20 bytes of sha3(rlp(sender, nonce)).` By using the `create2` function, we can ensure the same sender, allowing us to deploy a proposal deployer.
 
-We are able to assert the same sender, due to the `create2` function, where we can deploy a proposal factory.
+The nonce represents the number of transactions the address has initiated, starting at nonce 0. Creating a second proposal increments the nonce to 1, resulting in a new address.
 
-the nonce is the number of transactions the address has sent, so it starts at nonce 0 and if we create a second proposal it will have nonce 1
-and a new address.
-
-## How can we reset the nonce?
+![Tornado Image](../images/tornadocash/tornadocash2.drawio.png)
 
 To reset nonce you will have to redeploy the address of the contract.
-the exploit is done by destorying the initial proposal of the proposal factory
+the exploit is done by destroying the initial proposal of the proposal deployer
 and redeploying it on the same address by using the `create2` function, where its able to reset the nonce and successfully swap the safe code
 with malicious code.
 
+To reset the nonce, the contract address must be redeployed. The exploit is done by destroying the initial proposal and the proposal deployer and subsequently redeploying it at the same address using the `create2` function. This will reset the nonce
 
 
 
+## POC
 
-**Code provided by:** [DeFiHackLabs](https://github.com/SunWeb3Sec/DeFiHackLabs/blob/main/src/test/88mph_exp.sol)
+![Tornado Image](../images/tornadocash/tornadocash.drawio.png)
+
+
+1. The user initiates a proposal deploy contract on a specific address.
+2. A proposal is created by the user, containing safe code.
+3. Tornado conducts a safety check on the code and approves the proposal.
+4. The proposal triggers self-destruction, followed by the deployer contract.
+5. The deploy contract is redeployed at the same address, creating a proposal on the same address due to the reset nonce.
+6. The user invokes the `execute proposal` function on Tornado, leading to the execution of malicious code
+
+
 
 
 [**< Back**](https://patronasxdxd.github.io/CTFS/)
