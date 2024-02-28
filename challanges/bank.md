@@ -34,6 +34,5 @@ contract Bank is Owned {
 ```
 [**< Show Solution >**](https://patronasxdxd.github.io/CTFS/challanges/bankSolution)
 
-
 [**< Back >**](https://patronasxdxd.github.io/CTFS/)
 
