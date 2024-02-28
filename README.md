@@ -1,6 +1,6 @@
-## Contents
+# Contents
 
-* **Previous Exploits**
+## **Previous Exploits**
   1. [**1_Agave**](docs/1_Agave.md): Reentrancy.
   2. [**88mph**](docs/88mph.md): unprotected init()
   3. [**AffineDeFi**](docs/AffineDeFi.md): flash loan attack
@@ -18,13 +18,13 @@
 
 
 
-* **Custom Challanges**
+##  **Custom Challanges**
   1. [**Overflow**](challanges/shop.md)
   2. [**Reetrancy**](challanges/bank.md)
   3. [**Read Only Reetrancy**](challanges/rewardable.md)
  
 
-[![GitHub Streak](https://streak-stats.demolab.com/?user=patronasxdxd&theme=slateorange)](https://git.io/streak-stats)
+[![GitHub Streak](https://streak-stats.demolab.com/?user=patronasxdxd&theme=catppuccin-latte)](https://git.io/streak-stats)
 
 
 
