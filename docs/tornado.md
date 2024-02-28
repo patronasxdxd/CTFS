@@ -11,16 +11,20 @@ However, a significant issue arises when a user deploys malicious code on an add
 To illustrate this vulnerability, we can distinguish between a standard situation and an exploited one.
 
 
-![Tornado Image](../images/tornadocash/tornadocash3.drawio.png)
+![Tornado Image](../images/tornadocash/tornadocash4.drawio.png)
 
 
 ## How can we deploy a proposal at the same address?
 
-The address is generated using the formula `address = last 20 bytes of sha3(rlp(sender, nonce)).` By using the `create2` function, we can ensure the same sender, allowing us to deploy a proposal deployer.
+A address is generated using the formula `address = last 20 bytes of sha3(rlp(sender, nonce)).` 
+
+By using the `create2` function, we can ensure the same sender, allowing us to deploy a proposal deployer.
 
 The nonce represents the number of transactions the address has initiated, starting at nonce 0. Creating a second proposal increments the nonce to 1, resulting in a new address.
 
 ![Tornado Image](../images/tornadocash/tornadocash2.drawio.png)
+
+## How can we reset the nonce?
 
 To reset the nonce, the contract address must be redeployed. The exploit is done by destroying the initial proposal and the proposal deployer and subsequently redeploying it at the same address using the `create2` function. This will reset the nonce
 
